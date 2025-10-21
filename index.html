@@ -158,11 +158,18 @@
     </div>
   </div>
 
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    // ========== CONFIGURATION POCKETBASE ==========
-    // REMPLACEZ par votre URL PocketBase
-    const POCKETBASE_URL = "https://votre-app.railway.app"; // ou render.com, fly.io, etc.
+    // ========== CONFIGURATION SUPABASE ==========
+    // REMPLACEZ avec vos clés de Supabase
+    const SUPABASE_URL = "https://votre-url.supabase.co";
+    const SUPABASE_ANON_KEY = "votre-cle-anon-publique-ici";
     
+    // Initialiser Supabase
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // Kòd admin
     const ADMIN_CODE = "sante123";
 
@@ -193,28 +200,6 @@
       'mwen vle mouri', 'fè tèt mwen mal', 'sui', 'suicide', 'mwen pa kapab ankò',
       'mwen fatige', 'mwen vle tout fini', 'pa gen espwa'
     ];
-
-    // Fonctions PocketBase
-    async function pbFetch(endpoint, options = {}) {
-      try {
-        const response = await fetch(`${POCKETBASE_URL}/api/collections/${endpoint}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-          },
-          ...options
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-      } catch (error) {
-        console.error('PocketBase error:', error);
-        throw error;
-      }
-    }
 
     // Carousel setup
     function createImageCarousel(){
@@ -271,30 +256,36 @@
     // Escape HTML
     function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-    // Load feed from PocketBase
+    // Load feed from Supabase
     async function loadFeed(){
       try{
-        const data = await pbFetch('messages/records?sort=-approved_at&perPage=50');
+        const { data: messages, error } = await supabase
+          .from('messages')
+          .select('*')
+          .order('approved_at', { ascending: false })
+          .limit(50);
+        
+        if (error) throw error;
         
         const feed = document.getElementById('feed'); 
         feed.innerHTML = '';
         
-        if(!data.items || data.items.length === 0) {
+        if(!messages || messages.length === 0) {
           feed.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">📝 Pa gen mesaj pou kounye a. Ou ka pataje premye mesaj ou!</div>';
           return;
         }
 
-        data.items.forEach(item => {
+        messages.forEach(message => {
           const node = document.createElement('div'); 
           node.className='msg';
           
           let commentsHtml = '';
-          if (item.comments && item.comments.length > 0) {
+          if (message.comments && message.comments.length > 0) {
             commentsHtml = `<div class="comment-section">
-              <strong>💬 Kòmantè (${item.comments.length}):</strong>
-              ${item.comments.map((comment, commentIndex) => 
+              <strong>💬 Kòmantè (${message.comments.length}):</strong>
+              ${message.comments.map((comment, commentIndex) => 
                 `<div class="comment">
-                  <button class="delete-comment-btn" onclick="deleteComment('${item.id}', ${commentIndex})">🗑️</button>
+                  <button class="delete-comment-btn" onclick="deleteComment('${message.id}', ${commentIndex})">🗑️</button>
                   <strong>${escapeHtml(comment.author || 'Moderatè')}:</strong> ${escapeHtml(comment.text)}
                   <div style="font-size:11px;color:var(--muted);margin-top:4px">
                     ${comment.created || ''}
@@ -306,14 +297,14 @@
 
           const commentForm = `
             <div class="comment-form">
-              <input type="text" class="comment-input" placeholder="Ajoute yon kòmantè..." id="comment-${item.id}">
-              <button class="admin-comment-btn" onclick="addComment('${item.id}')">💬 Kòmantè</button>
+              <input type="text" class="comment-input" placeholder="Ajoute yon kòmantè..." id="comment-${message.id}">
+              <button class="admin-comment-btn" onclick="addComment('${message.id}')">💬 Kòmantè</button>
             </div>
           `;
 
           node.innerHTML = `
-            <div class="meta">${escapeHtml(item.pseudo||'👤 Anonim')} · ${getMoodEmoji(item.mood)} ${escapeHtml(item.mood||'')} · ${item.approved_at ? new Date(item.approved_at).toLocaleString() : ''}</div>
-            <div style="margin-top:6px;line-height:1.5">${escapeHtml(item.text||'')}</div>
+            <div class="meta">${escapeHtml(message.pseudo||'👤 Anonim')} · ${getMoodEmoji(message.mood)} ${escapeHtml(message.mood||'')} · ${message.approved_at ? new Date(message.approved_at).toLocaleString() : ''}</div>
+            <div style="margin-top:6px;line-height:1.5">${escapeHtml(message.text||'')}</div>
             ${commentsHtml}
             ${commentForm}
           `;
@@ -337,7 +328,7 @@
       return emojis[mood] || '😐';
     }
 
-    // Add comment to PocketBase
+    // Add comment to Supabase
     async function addComment(messageId) {
       const commentInput = document.getElementById(`comment-${messageId}`);
       const commentText = commentInput.value.trim();
@@ -348,10 +339,16 @@
       }
 
       try {
-        // D'abord récupérer le message actuel
-        const currentMessage = await pbFetch(`messages/records/${messageId}`);
-        const currentComments = currentMessage.comments || [];
+        // Récupérer le message actuel
+        const { data: currentMessage, error: fetchError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('id', messageId)
+          .single();
         
+        if (fetchError) throw fetchError;
+
+        const currentComments = currentMessage.comments || [];
         const newComment = {
           text: commentText,
           author: 'Moderatè',
@@ -360,13 +357,13 @@
         
         const updatedComments = [...currentComments, newComment];
         
-        // Mettre à jour le message avec le nouveau commentaire
-        await pbFetch(`messages/records/${messageId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({
-            comments: updatedComments
-          })
-        });
+        // Mettre à jour le message
+        const { error: updateError } = await supabase
+          .from('messages')
+          .update({ comments: updatedComments })
+          .eq('id', messageId);
+        
+        if (updateError) throw updateError;
         
         commentInput.value = '';
         loadFeed();
@@ -377,23 +374,29 @@
       }
     }
 
-    // Delete comment from PocketBase
+    // Delete comment from Supabase
     async function deleteComment(messageId, commentIndex) {
       if (!confirm('Èske w sèten w vle efase kòmantè sa a?')) return;
 
       try {
-        const currentMessage = await pbFetch(`messages/records/${messageId}`);
-        const currentComments = currentMessage.comments || [];
+        const { data: currentMessage, error: fetchError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('id', messageId)
+          .single();
         
+        if (fetchError) throw fetchError;
+
+        const currentComments = currentMessage.comments || [];
         const updatedComments = [...currentComments];
         updatedComments.splice(commentIndex, 1);
         
-        await pbFetch(`messages/records/${messageId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({
-            comments: updatedComments
-          })
-        });
+        const { error: updateError } = await supabase
+          .from('messages')
+          .update({ comments: updatedComments })
+          .eq('id', messageId);
+        
+        if (updateError) throw updateError;
 
         loadFeed();
         
@@ -414,7 +417,7 @@
       document.getElementById('emergencyAlert').classList.add('show');
     }
 
-    // Submit message to PocketBase
+    // Submit message to Supabase
     async function submitMessage(){
       const pseudo = (document.getElementById('pseudo').value||'Anonim').trim().slice(0,30);
       const mood = document.getElementById('mood').value;
@@ -436,16 +439,19 @@
       }
 
       try{
-        await pbFetch('messages_pending/records', {
-          method: 'POST',
-          body: JSON.stringify({
-            pseudo, 
-            mood, 
-            text, 
-            consent,
-            status: 'pending'
-          })
-        });
+        const { error } = await supabase
+          .from('messages_pending')
+          .insert([
+            { 
+              pseudo, 
+              mood, 
+              text, 
+              consent,
+              status: 'pending'
+            }
+          ]);
+        
+        if (error) throw error;
         
         document.getElementById('message').value = '';
         document.getElementById('pseudo').value = '';
@@ -464,29 +470,41 @@
       modal.classList.add('show');
     }
 
-    // Approve message in PocketBase
+    // Approve message in Supabase
     async function approveMsg(id){
       try {
         // Récupérer le message en attente
-        const pendingMessage = await pbFetch(`messages_pending/records/${id}`);
+        const { data: pendingMessage, error: fetchError } = await supabase
+          .from('messages_pending')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (fetchError) throw fetchError;
         
         // Créer le message approuvé
-        await pbFetch('messages/records', {
-          method: 'POST',
-          body: JSON.stringify({
-            pseudo: pendingMessage.pseudo,
-            mood: pendingMessage.mood,
-            text: pendingMessage.text,
-            consent: pendingMessage.consent,
-            approved_at: new Date().toISOString(),
-            comments: []
-          })
-        });
+        const { error: insertError } = await supabase
+          .from('messages')
+          .insert([
+            {
+              pseudo: pendingMessage.pseudo,
+              mood: pendingMessage.mood,
+              text: pendingMessage.text,
+              consent: pendingMessage.consent,
+              approved_at: new Date().toISOString(),
+              comments: []
+            }
+          ]);
+        
+        if (insertError) throw insertError;
         
         // Supprimer le message en attente
-        await pbFetch(`messages_pending/records/${id}`, {
-          method: 'DELETE'
-        });
+        const { error: deleteError } = await supabase
+          .from('messages_pending')
+          .delete()
+          .eq('id', id);
+        
+        if (deleteError) throw deleteError;
         
         loadFeed();
         loadPending();
@@ -497,38 +515,47 @@
       }
     }
 
-    // Reject message in PocketBase
+    // Reject message in Supabase
     async function rejectMsg(id){
       try {
-        await pbFetch(`messages_pending/records/${id}`, {
-          method: 'DELETE'
-        });
+        const { error } = await supabase
+          .from('messages_pending')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
         loadPending();
       } catch (error) {
         console.error('Erè rejè:', error);
       }
     }
 
-    // Load pending messages from PocketBase
+    // Load pending messages from Supabase
     async function loadPending(){
       try{
-        const data = await pbFetch('messages_pending/records?sort=-created&perPage=40');
+        const { data: pendingMessages, error } = await supabase
+          .from('messages_pending')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(40);
+        
+        if (error) throw error;
         
         const el = document.getElementById('pending'); 
         el.innerHTML='';
         
-        if(!data.items || data.items.length === 0) {
+        if(!pendingMessages || pendingMessages.length === 0) {
           el.innerHTML='<div style="color:var(--muted);text-align:center;padding:10px">✅ Pa gen mesaj an atant.</div>';
           return;
         }
 
-        data.items.forEach(item => {
+        pendingMessages.forEach(message => {
           const node = document.createElement('div'); 
           node.className='msg';
           node.innerHTML = `
-            <div class="meta">${escapeHtml(item.pseudo||'👤 Anonim')} — ${getMoodEmoji(item.mood)} ${escapeHtml(item.mood||'')} — ${item.created ? new Date(item.created).toLocaleString() : ''}</div>
-            <div style="margin-top:6px;line-height:1.5">${escapeHtml(item.text||'')}</div>
-            ${checkForEmergency(item.text) ? '<div style="color:red;font-size:12px;margin-top:4px">🚨 DETÈS DETEKTE</div>' : ''}
+            <div class="meta">${escapeHtml(message.pseudo||'👤 Anonim')} — ${getMoodEmoji(message.mood)} ${escapeHtml(message.mood||'')} — ${message.created_at ? new Date(message.created_at).toLocaleString() : ''}</div>
+            <div style="margin-top:6px;line-height:1.5">${escapeHtml(message.text||'')}</div>
+            ${checkForEmergency(message.text) ? '<div style="color:red;font-size:12px;margin-top:4px">🚨 DETÈS DETEKTE</div>' : ''}
           `;
           
           const btnContainer = document.createElement('div');
@@ -544,12 +571,12 @@
           reject.innerText='❌ Refize';
           
           approve.onclick = async ()=>{ 
-            await approveMsg(item.id); 
+            await approveMsg(message.id); 
           };
           
           reject.onclick = async ()=>{ 
             if(confirm('Èske w sèten w vle refize mesaj sa a?')) {
-              await rejectMsg(item.id); 
+              await rejectMsg(message.id); 
             }
           };
           
