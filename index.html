@@ -266,6 +266,28 @@
             margin: 20px 0;
             text-align: center;
             font-style: italic;
+            position: relative;
+        }
+
+        .quote-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .quote-prev {
+            left: 10px;
+        }
+
+        .quote-next {
+            right: 10px;
         }
 
         .admin-panel {
@@ -310,6 +332,12 @@
             background: var(--accent);
             color: white;
         }
+
+        .quote-counter {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -327,7 +355,10 @@
 
             <!-- Citation inspirante -->
             <div class="inspiration-quote" id="daily-quote">
-                "Pale de sa w santi a, se premye etap gerizon"
+                <button class="quote-nav quote-prev" onclick="showPreviousQuote()">‹</button>
+                <div id="quote-text">"Pale de sa w santi a, se premye etap gerizon"</div>
+                <div class="quote-counter" id="quote-counter">1/10</div>
+                <button class="quote-nav quote-next" onclick="showNextQuote()">›</button>
             </div>
 
             <!-- Formulaire de Message -->
@@ -468,6 +499,10 @@
             ]
         };
 
+        // Variables globales
+        let currentQuoteIndex = 0;
+        let allMessages = [];
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
             console.log("🚀 Lansman aplikasyon an...");
@@ -477,8 +512,7 @@
         async function initializeApp() {
             setupEventListeners();
             await loadMessages();
-            showRandomQuote();
-            setInterval(showRandomQuote, 30000); // Chanje chak 30 segond
+            showQuote(currentQuoteIndex);
             
             // Koute chanjman nan baz done an pou tout moun ka wè mesaj imedyatman
             setupRealtimeListener();
@@ -487,14 +521,15 @@
         // 🔥 KORÈKSYON ENPÒTAN: Koute chanjman an tan reyèl
         function setupRealtimeListener() {
             db.collection('messages')
+                .where('status', '==', 'approved')
                 .orderBy('approvedAt', 'desc')
                 .onSnapshot((snapshot) => {
                     console.log("🔄 Mizajou an tan reyèl!");
-                    const messages = [];
+                    allMessages = [];
                     snapshot.forEach(doc => {
-                        messages.push({ id: doc.id, ...doc.data() });
+                        allMessages.push({ id: doc.id, ...doc.data() });
                     });
-                    displayMessages(messages);
+                    displayMessages(allMessages);
                 }, (error) => {
                     console.error('Erè koute mesaj:', error);
                 });
@@ -504,19 +539,26 @@
             const form = document.getElementById('message-form');
             form.addEventListener('submit', handleSubmit);
             document.getElementById('admin-btn').addEventListener('click', handleAdminAuth);
+        }
+
+        // 🔥 SISTÈM NAVIGASYON POU QUOTES
+        function showQuote(index) {
+            const quoteText = document.getElementById('quote-text');
+            const quoteCounter = document.getElementById('quote-counter');
             
-            // Ajoute efè pou textarea a
-            const textarea = document.getElementById('message');
-            textarea.addEventListener('focus', showTypingEncouragement);
+            quoteText.textContent = `"${inspirationData.quotes[index]}"`;
+            quoteCounter.textContent = `${index + 1}/${inspirationData.quotes.length}`;
+            currentQuoteIndex = index;
         }
 
-        function showRandomQuote() {
-            const quote = inspirationData.quotes[Math.floor(Math.random() * inspirationData.quotes.length)];
-            document.getElementById('daily-quote').textContent = `"${quote}"`;
+        function showNextQuote() {
+            currentQuoteIndex = (currentQuoteIndex + 1) % inspirationData.quotes.length;
+            showQuote(currentQuoteIndex);
         }
 
-        function showTypingEncouragement() {
-            const encouragement = inspirationData.encouragements[Math.floor(Math.random() * inspirationData.encouragements.length)];
+        function showPreviousQuote() {
+            currentQuoteIndex = (currentQuoteIndex - 1 + inspirationData.quotes.length) % inspirationData.quotes.length;
+            showQuote(currentQuoteIndex);
         }
 
         async function handleSubmit(e) {
@@ -537,23 +579,21 @@
             }
 
             try {
-                // 🔥 KORÈKSYON: Kreye mesaj la dirèkteman nan koleksyon messages
-                await db.collection('messages').add({
+                // 🔥 KORÈKSYON: Voye mesaj la nan koleksyon "messages_pending" pou apwobasyon
+                await db.collection('messages_pending').add({
                     pseudo: pseudo,
                     mood: mood,
                     text: text,
                     consent: consent,
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    comments: [],
-                    status: 'approved'
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
                 // 🔥 KORÈKSYON: Montre konfimasyon klè
                 showConfirmationMessage(`
                     <div class="success">
                         <strong>✅ Mesaj ou an voye ak siksè!</strong><br>
-                        <small>Mesaj ou a parèt nan lis la imedyatman. Mèsi pou pataje kè w.</small>
+                        <small>Mesaj ou a pral parèt apre apwobasyon moderatè a. Mèsi pou pasyans w.</small>
                     </div>
                 `);
                 
@@ -582,15 +622,16 @@
                 container.innerHTML = '<div class="loading">⏳ Nap chaje mesaj yo...</div>';
                 
                 const snapshot = await db.collection('messages')
+                    .where('status', '==', 'approved')
                     .orderBy('approvedAt', 'desc')
                     .get();
                 
-                const messages = [];
+                allMessages = [];
                 snapshot.forEach(doc => {
-                    messages.push({ id: doc.id, ...doc.data() });
+                    allMessages.push({ id: doc.id, ...doc.data() });
                 });
 
-                displayMessages(messages);
+                displayMessages(allMessages);
                 
             } catch (error) {
                 console.error('Erè chajman:', error);
@@ -619,11 +660,11 @@
                     </div>
                     <div class="message-content">${escapeHtml(msg.text)}</div>
                     
-                    <!-- 🔥 SISTÈM KOMANTÈ -->
+                    <!-- 🔥 SISTÈM KOMANTÈ KORIJE -->
                     <div class="comments-section">
                         <div class="comment-form">
                             <input type="text" class="comment-input" placeholder="💬 Ekri yon komantè sipò..." 
-                                   id="comment-${msg.id}">
+                                   id="comment-input-${msg.id}">
                             <button class="btn btn-primary btn-small" onclick="addComment('${msg.id}')">
                                 Voye
                             </button>
@@ -635,7 +676,7 @@
                                 ${msg.comments.map(comment => `
                                     <div class="comment">
                                         <div class="comment-meta">
-                                            <strong>${escapeHtml(comment.pseudo)}</strong> • ${formatDate(comment.createdAt.toDate())}
+                                            <strong>${escapeHtml(comment.pseudo)}</strong> • ${comment.createdAt ? formatDate(comment.createdAt.toDate()) : 'Nouvo'}
                                         </div>
                                         <div>${escapeHtml(comment.text)}</div>
                                     </div>
@@ -647,9 +688,9 @@
             `).join('');
         }
 
-        // 🔥 FONKSYON POU AJOUTE KOMANTÈ
+        // 🔥 FONKSYON POU AJOUTE KOMANTÈ KORIJE
         async function addComment(messageId) {
-            const commentInput = document.getElementById(`comment-${messageId}`);
+            const commentInput = document.getElementById(`comment-input-${messageId}`);
             const commentText = commentInput.value.trim();
             
             if (!commentText) {
@@ -664,17 +705,27 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                // Ajoute komantè a nan mesaj la
-                await db.collection('messages').doc(messageId).update({
-                    comments: firebase.firestore.FieldValue.arrayUnion(comment)
-                });
+                // 🔥 KORÈKSYON: Ajoute komantè a nan mesaj la
+                const messageRef = db.collection('messages').doc(messageId);
+                const messageDoc = await messageRef.get();
+                
+                if (messageDoc.exists) {
+                    const currentComments = messageDoc.data().comments || [];
+                    currentComments.push(comment);
+                    
+                    await messageRef.update({
+                        comments: currentComments
+                    });
 
-                commentInput.value = '';
-                showSuccess('💬 Komantè ou an ajoute!');
+                    commentInput.value = '';
+                    showSuccess('💬 Komantè ou an ajoute!');
+                } else {
+                    showError('Mesaj la pa egziste ankò.');
+                }
                 
             } catch (error) {
                 console.error('Erè ajoute komantè:', error);
-                showError('Erè ajoute komantè a.');
+                showError('Erè ajoute komantè a: ' + error.message);
             }
         }
 
@@ -759,7 +810,8 @@
                     consent: data.consent || false,
                     approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
-                    comments: []
+                    comments: [],
+                    status: 'approved'
                 });
 
                 // Efase mesaj an atant
@@ -769,7 +821,6 @@
                 showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
 
                 // Rechaje lis yo
-                await loadMessages();
                 await loadPendingMessages();
                 
             } catch (error) {
@@ -849,6 +900,8 @@
         window.loadMessages = loadMessages;
         window.loadPendingMessages = loadPendingMessages;
         window.addComment = addComment;
+        window.showNextQuote = showNextQuote;
+        window.showPreviousQuote = showPreviousQuote;
     </script>
 </body>
 </html>
