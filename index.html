@@ -112,11 +112,6 @@
             color: var(--muted);
         }
 
-        .btn-small {
-            padding: 8px 15px;
-            font-size: 14px;
-        }
-
         .messages-container {
             max-height: 500px;
             overflow-y: auto;
@@ -128,44 +123,6 @@
             border-radius: var(--radius);
             margin-bottom: 15px;
             border-left: 4px solid var(--accent);
-        }
-
-        .message-meta {
-            font-size: 0.85rem;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-
-        .comments-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .comment {
-            background: rgba(0, 0, 0, 0.03);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .comment-meta {
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 5px;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .comment-input {
-            flex: 1;
-            padding: 8px 12px;
-            font-size: 14px;
         }
 
         .loading {
@@ -210,7 +167,7 @@
 
                 <div class="form-group">
                     <select id="mood">
-                        <option value="">😐 Chwaki kijan ou santi w</option>
+                        <option value="">😐 Chwazi kijan ou santi w</option>
                         <option value="sad">😢 Tris</option>
                         <option value="anxious">😰 Anksye</option>
                         <option value="lost">😵 Pèdi</option>
@@ -276,7 +233,7 @@
 
     <script>
         // ========== CONFIGURATION FIREBASE ==========
-        // ⚠️ REMPLACEZ AVEC VOS CLÉS FIREBASE
+        // REMPLACEZ AVEC VOS CLÉS FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
             authDomain: "votre-projet.firebaseapp.com",
@@ -295,116 +252,13 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("🚀 Démarrage de l'application...");
-            setupEventListeners();
             loadMessages();
+            setupEventListeners();
         });
 
         function setupEventListeners() {
             document.getElementById('message-form').addEventListener('submit', handleSubmit);
             document.getElementById('admin-btn').addEventListener('click', handleAdminAuth);
-        }
-
-        // 🚀 FONCTION PRINCIPALE POUR CHARGER LES MESSAGES
-        async function loadMessages() {
-            try {
-                console.log("🔄 Début du chargement des messages...");
-                
-                const messagesContainer = document.getElementById('messages-feed');
-                messagesContainer.innerHTML = '<div class="loading">🔄 Chajman...</div>';
-                
-                // Essayer sans tri d'abord pour voir si ça marche
-                const snapshot = await db.collection('messages').get();
-                
-                console.log("✅ Snapshots reçus:", snapshot.size);
-                
-                const messages = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    messages.push({ 
-                        id: doc.id, 
-                        ...data
-                    });
-                });
-
-                console.log("📝 Messages trouvés:", messages.length);
-                
-                if (messages.length === 0) {
-                    displayNoMessages();
-                    return;
-                }
-
-                displayMessages(messages);
-                
-            } catch (error) {
-                console.error('❌ Erreur détaillée:', error);
-                showError('Erè chajman: ' + error.message);
-            }
-        }
-
-        function displayNoMessages() {
-            const container = document.getElementById('messages-feed');
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: var(--muted);">
-                    📝 Pa gen mesaj pou kounye a.<br>
-                    <small>Ou ka pataje premye mesaj ou!</small>
-                    <br><br>
-                    <button onclick="addSampleMessage()" class="btn btn-primary">
-                        ➕ Ajoute yon mesaj egzanp
-                    </button>
-                </div>
-            `;
-        }
-
-        function displayMessages(messages) {
-            const container = document.getElementById('messages-feed');
-            
-            // Trie messages par date (plus récent en premier)
-            messages.sort((a, b) => {
-                const timeA = a.approvedAt ? a.approvedAt.toDate().getTime() : 0;
-                const timeB = b.approvedAt ? b.approvedAt.toDate().getTime() : 0;
-                return timeB - timeA;
-            });
-
-            container.innerHTML = messages.map(msg => `
-                <div class="message">
-                    <div class="message-meta">
-                        <strong>${escapeHtml(msg.pseudo || 'Anonim')}</strong> • 
-                        ${getMoodEmoji(msg.mood)} ${msg.mood || ''} • 
-                        ${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : 'Nouvo'}
-                    </div>
-                    <div class="message-content">${escapeHtml(msg.text)}</div>
-                    
-                    <!-- Section commentaires -->
-                    <div class="comments-section">
-                        <strong>💬 Kòmantè (${msg.comments ? msg.comments.length : 0})</strong>
-                        
-                        ${msg.comments && msg.comments.length > 0 ? 
-                            msg.comments.map(comment => `
-                                <div class="comment">
-                                    <div class="comment-meta">
-                                        ${escapeHtml(comment.author)} • ${comment.timestamp ? formatDate(comment.timestamp.toDate()) : ''}
-                                    </div>
-                                    <div>${escapeHtml(comment.text)}</div>
-                                    <button onclick="deleteComment('${msg.id}', '${comment.id}')" class="btn btn-secondary btn-small" style="margin-top: 5px;">
-                                        🗑️ Efase
-                                    </button>
-                                </div>
-                            `).join('') 
-                            : 
-                            '<div style="color: var(--muted); font-style: italic; margin-top: 5px;">Pa gen kòmantè ankò.</div>'
-                        }
-                        
-                        <!-- Formulaire pour ajouter un commentaire -->
-                        <div class="comment-form">
-                            <input type="text" class="comment-input" id="comment-input-${msg.id}" placeholder="Ekri yon kòmantè sipò...">
-                            <button onclick="addComment('${msg.id}')" class="btn btn-primary btn-small">
-                                💬 Kòmantè
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
         }
 
         async function handleSubmit(e) {
@@ -421,6 +275,7 @@
             }
 
             try {
+                // Ajouter à Firestore
                 await db.collection('messages_pending').add({
                     pseudo: pseudo,
                     mood: mood,
@@ -430,7 +285,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                showSuccess('✅ Mesaj voye! Li pral parèt apre modération.');
+                showSuccess('✅ Mesaj voye avèk siksè! Li pral parèt apre modération.');
                 document.getElementById('message-form').reset();
                 
             } catch (error) {
@@ -439,49 +294,47 @@
             }
         }
 
-        // 🚀 FONCTION D'APPROBATION CORRIGÉE
-        async function approveMessage(id) {
+        async function loadMessages() {
             try {
-                console.log("🔄 Apwobasyon mesaj:", id);
-                
-                const docRef = db.collection('messages_pending').doc(id);
-                const doc = await docRef.get();
-                
-                if (!doc.exists) {
-                    showError('Mesaj pa egziste ankò.');
-                    return;
-                }
-                
-                const data = doc.data();
+                const snapshot = await db.collection('messages')
+                    .orderBy('approvedAt', 'desc')
+                    .limit(20)
+                    .get();
 
-                // Kreye mesaj apwouve a
-                const newMessage = {
-                    pseudo: data.pseudo || 'Anonim',
-                    mood: data.mood || '',
-                    text: data.text || '',
-                    consent: data.consent || false,
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    comments: []
-                };
-                
-                // Mete mesaj apwouve a nan koleksyon messages
-                await db.collection('messages').add(newMessage);
+                const messages = [];
+                snapshot.forEach(doc => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
 
-                // Efase mesaj an atant yo
-                await docRef.delete();
-
-                // Afiche konfimasyon
-                showSuccess('✅ Mesaj apwouve! Li parèt nan fil la kounye a.');
-
-                // Rechaje imedyatman
-                await loadMessages();
-                await loadPendingMessages();
+                displayMessages(messages);
                 
             } catch (error) {
-                console.error('❌ Erè apwobasyon:', error);
-                showError('Erè apwobasyon: ' + error.message);
+                console.error('Erè chajman:', error);
+                showError('Erè chajman mesaj.');
             }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messages-feed');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--muted);">
+                        📝 Pa gen mesaj pou kounye a.<br>
+                        Ou ka pataje premye mesaj ou!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => `
+                <div class="message">
+                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                        ${escapeHtml(msg.pseudo)} • ${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : ''}
+                    </div>
+                    <div>${escapeHtml(msg.text)}</div>
+                </div>
+            `).join('');
         }
 
         async function handleAdminAuth() {
@@ -498,9 +351,11 @@
 
         async function loadPendingMessages() {
             try {
-                const snapshot = await db.collection('messages_pending').get();
+                const snapshot = await db.collection('messages_pending')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
                 const pending = [];
-                
                 snapshot.forEach(doc => {
                     pending.push({ id: doc.id, ...doc.data() });
                 });
@@ -527,15 +382,15 @@
 
             container.innerHTML = messages.map(msg => `
                 <div class="message" style="margin-bottom: 15px;">
-                    <div class="message-meta">
+                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
                         ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : ''}
                     </div>
                     <div>${escapeHtml(msg.text)}</div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button onclick="approveMessage('${msg.id}')" class="btn btn-primary btn-small">
+                        <button onclick="approveMessage('${msg.id}')" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
                             ✅ Apwouve
                         </button>
-                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-secondary btn-small">
+                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
                             ❌ Refize
                         </button>
                     </div>
@@ -543,6 +398,50 @@
             `).join('');
         }
 
+        async function approveMessage(id) {
+    try {
+        console.log("Tentative d'approbation du message:", id);
+        
+        // 1. Récupérer le message en attente
+        const docRef = db.collection('messages_pending').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            throw new Error("Message non trouvé");
+        }
+        
+        const data = doc.data();
+        console.log("Données du message:", data);
+
+        // 2. Créer le message approuvé
+        const newMessage = {
+            pseudo: data.pseudo || 'Anonim',
+            mood: data.mood || '',
+            text: data.text || '',
+            consent: data.consent || false,
+            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        console.log("Nouveau message approuvé:", newMessage);
+        
+        await db.collection('messages').add(newMessage);
+
+        // 3. Supprimer l'attente
+        await docRef.delete();
+        
+        console.log("Message approuvé avec succès!");
+
+        // 4. Recharger
+        await loadMessages();
+        await loadPendingMessages();
+        showSuccess('✅ Mesaj apwouve avèk siksè!');
+        
+    } catch (error) {
+        console.error('Erè detay apwobasyon:', error);
+        showError('Erè apwobasyon: ' + error.message);
+    }
+}
         async function rejectMessage(id) {
             if (!confirm('Èske w sèten w vle refize mesaj sa a?')) return;
 
@@ -556,108 +455,7 @@
             }
         }
 
-        // Fonctions pour commentaires
-        async function addComment(messageId) {
-            const commentInput = document.getElementById(`comment-input-${messageId}`);
-            const commentText = commentInput.value.trim();
-
-            if (!commentText) {
-                showError('Tanpri ekri yon kòmantè.');
-                return;
-            }
-
-            try {
-                const comment = {
-                    id: generateId(),
-                    text: commentText,
-                    author: 'Moderatè',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                const messageRef = db.collection('messages').doc(messageId);
-                const messageDoc = await messageRef.get();
-                
-                if (!messageDoc.exists) return;
-
-                const currentData = messageDoc.data();
-                const currentComments = currentData.comments || [];
-                const updatedComments = [...currentComments, comment];
-
-                await messageRef.update({ comments: updatedComments });
-
-                commentInput.value = '';
-                showSuccess('✅ Kòmantè ajoute!');
-                await loadMessages();
-                
-            } catch (error) {
-                console.error('Erè ajout kòmantè:', error);
-                showError('Erè ajout kòmantè.');
-            }
-        }
-
-        async function deleteComment(messageId, commentId) {
-            if (!confirm('Èske w sèten w vle efase kòmantè sa a?')) return;
-
-            try {
-                const messageRef = db.collection('messages').doc(messageId);
-                const messageDoc = await messageRef.get();
-                
-                if (!messageDoc.exists) return;
-
-                const currentData = messageDoc.data();
-                const currentComments = currentData.comments || [];
-                const updatedComments = currentComments.filter(comment => comment.id !== commentId);
-
-                await messageRef.update({ comments: updatedComments });
-
-                showSuccess('✅ Kòmantè efase!');
-                await loadMessages();
-                
-            } catch (error) {
-                console.error('Erè efasman kòmantè:', error);
-                showError('Erè efasman kòmantè.');
-            }
-        }
-
-        // Fonction pour ajouter un message exemple
-        async function addSampleMessage() {
-            try {
-                await db.collection('messages').add({
-                    pseudo: 'Zanmi',
-                    text: 'Bonjou! Mwen kontan wè yon espas pou sipò emosyonèl nan kreyòl. Nou tout gen moman difisil, men ansanm nou pi fò! 💪',
-                    mood: 'happy',
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    comments: []
-                });
-                showSuccess('✅ Mesaj egzanp ajoute!');
-                loadMessages();
-            } catch (error) {
-                showError('Erè ajout egzanp: ' + error.message);
-            }
-        }
-
         // Utilitaires
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        function getMoodEmoji(mood) {
-            const emojis = {
-                'sad': '😢', 'anxious': '😰', 'lost': '😵', 'happy': '😊'
-            };
-            return emojis[mood] || '😐';
-        }
-
-        function formatDate(date) {
-            return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
         function showError(message) {
             const container = document.getElementById('messages-feed');
             const errorDiv = document.createElement('div');
@@ -678,13 +476,19 @@
             setTimeout(() => successDiv.remove(), 3000);
         }
 
+        function formatDate(date) {
+            return date.toLocaleDateString('fr-FR');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Exposer les fonctions globales
         window.approveMessage = approveMessage;
         window.rejectMessage = rejectMessage;
-        window.addComment = addComment;
-        window.deleteComment = deleteComment;
-        window.addSampleMessage = addSampleMessage;
-        window.loadMessages = loadMessages;
     </script>
 </body>
 </html>
