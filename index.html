@@ -333,28 +333,86 @@
                 console.error('Erè:', error);
                 showError('Erè anvoye mesaj.');
             }
-        }
+        }async function loadMessages() {
+    try {
+        console.log("🔄 Début chargement messages...");
+        
+        const snapshot = await db.collection('messages')
+            .orderBy('approvedAt', 'desc')
+            .limit(20)
+            .get();
 
-        async function loadMessages() {
-            try {
-                const snapshot = await db.collection('messages')
-                    .orderBy('approvedAt', 'desc')
-                    .limit(20)
-                    .get();
+        console.log("✅ Snapshots reçus:", snapshot.size);
+        
+        const messages = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            messages.push({ 
+                id: doc.id, 
+                ...data,
+                // Assurer que les commentaires existent
+                comments: data.comments || []
+            });
+        });
 
-                const messages = [];
-                snapshot.forEach(doc => {
-                    messages.push({ id: doc.id, ...doc.data() });
-                });
-
-                displayMessages(messages);
-                
-            } catch (error) {
-                console.error('Erè chajman:', error);
-                showError('Erè chajman mesaj.');
-            }
-        }
-
+        console.log("📝 Messages chargés:", messages);
+        displayMessages(messages);
+        
+    } catch (error) {
+        console.error('❌ Erè detay chajman:', error);
+        showError('Erè chajman mesaj: ' + error.message);
+        
+        // Afficher un message d'erreur clair
+        document.getElementById('messages-feed').innerHTML = `
+            <div class="error">
+                ❌ Erè chajman mesaj: ${error.message}<br>
+                <button onclick="loadMessages()" class="btn btn-primary" style="margin-top: 10px;">
+                    🔄 Eseye ankò
+                </button>
+            </div>
+        `;
+    }
+}
+async function testFirebaseConnection() {
+    try {
+        const container = document.getElementById('messages-feed');
+        container.innerHTML = '<div class="loading">🧪 Test Firebase...</div>';
+        
+        // Test 1: Vérifier la connexion
+        const testRef = await db.collection('test').add({
+            test: 'Connection test',
+            timestamp: new Date()
+        });
+        
+        // Test 2: Vérifier la lecture
+        const testDoc = await db.collection('test').doc(testRef.id).get();
+        
+        // Test 3: Vérifier les collections
+        const messagesSnapshot = await db.collection('messages').limit(1).get();
+        const pendingSnapshot = await db.collection('messages_pending').limit(1).get();
+        
+        // Nettoyer
+        await db.collection('test').doc(testRef.id).delete();
+        
+        container.innerHTML = `
+            <div class="success">
+                ✅ Firebase connection successful!<br>
+                <small>Messages: ${messagesSnapshot.size} | En attente: ${pendingSnapshot.size}</small>
+                <button onclick="loadMessages()" class="btn btn-primary" style="margin-top: 10px;">
+                    📥 Chaje mesaj yo
+                </button>
+            </div>
+        `;
+        
+    } catch (error) {
+        document.getElementById('messages-feed').innerHTML = `
+            <div class="error">
+                ❌ Firebase error: ${error.message}<br>
+                <small>Vérifiez vos clés Firebase</small>
+            </div>
+        `;
+    }
+}
         function displayMessages(messages) {
             const container = document.getElementById('messages-feed');
             
