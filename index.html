@@ -399,30 +399,49 @@
         }
 
         async function approveMessage(id) {
-            try {
-                // Récupérer le message en attente
-                const doc = await db.collection('messages_pending').doc(id).get();
-                const data = doc.data();
-
-                // Créer le message approuvé
-                await db.collection('messages').add({
-                    ...data,
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Supprimer l'attente
-                await db.collection('messages_pending').doc(id).delete();
-
-                // Recharger
-                await loadMessages();
-                await loadPendingMessages();
-                showSuccess('✅ Mesaj apwouve!');
-                
-            } catch (error) {
-                console.error('Erè:', error);
-                showError('Erè apwobasyon mesaj');
-            }
+    try {
+        console.log("Tentative d'approbation du message:", id);
+        
+        // 1. Récupérer le message en attente
+        const docRef = db.collection('messages_pending').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            throw new Error("Message non trouvé");
         }
+        
+        const data = doc.data();
+        console.log("Données du message:", data);
+
+        // 2. Créer le message approuvé
+        const newMessage = {
+            pseudo: data.pseudo || 'Anonim',
+            mood: data.mood || '',
+            text: data.text || '',
+            consent: data.consent || false,
+            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        console.log("Nouveau message approuvé:", newMessage);
+        
+        await db.collection('messages').add(newMessage);
+
+        // 3. Supprimer l'attente
+        await docRef.delete();
+        
+        console.log("Message approuvé avec succès!");
+
+        // 4. Recharger
+        await loadMessages();
+        await loadPendingMessages();
+        showSuccess('✅ Mesaj apwouve avèk siksè!');
+        
+    } catch (error) {
+        console.error('Erè detay apwobasyon:', error);
+        showError('Erè apwobasyon: ' + error.message);
+    }
+}
 
         async function rejectMessage(id) {
             if (!confirm('Èske w sèten w vle refize mesaj sa a?')) return;
