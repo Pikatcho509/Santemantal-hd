@@ -548,15 +548,34 @@
         }
 
         async function approveMessage(id) {
-            try {
-                const docRef = db.collection('messages_pending').doc(id);
-                const doc = await docRef.get();
-                
-                if (!doc.exists) {
-                    throw new Error("Message non trouvé");
-                }
-                
-                const data = doc.data();
+    try {
+        // Version simple sans commentaires
+        const docRef = db.collection('messages_pending').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) return;
+        
+        const data = doc.data();
+
+        // Message très simple
+        await db.collection('messages').add({
+            pseudo: data.pseudo || 'Anonim',
+            mood: data.mood || '',
+            text: data.text || '',
+            consent: data.consent || false,
+            approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await docRef.delete();
+        await loadMessages();
+        await loadPendingMessages();
+        showSuccess('✅ Mesaj apwouve!');
+        
+    } catch (error) {
+        console.error('Erè:', error);
+        showError('Erè apwobasyon');
+    }
+}
 
                 const newMessage = {
                     pseudo: data.pseudo || 'Anonim',
