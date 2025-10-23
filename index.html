@@ -289,6 +289,12 @@
             cursor: pointer;
             z-index: 1000;
         }
+
+        .refresh-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -375,6 +381,17 @@
 
                 <div id="admin-panel" style="display: none;">
                     <h5 style="margin-bottom: 15px; color: var(--accent);">⏳ Mesaj kap tann apwobasyon</h5>
+                    
+                    <!-- BOUTON AKTUALIZASYON -->
+                    <div class="refresh-buttons">
+                        <button onclick="loadPendingMessages()" class="btn btn-secondary btn-small">
+                            🔄 Actualize
+                        </button>
+                        <button onclick="loadMessages()" class="btn btn-secondary btn-small">
+                            📖 Wè mesaj piblik
+                        </button>
+                    </div>
+                    
                     <div id="pending-messages"></div>
                 </div>
             </div>
@@ -504,7 +521,12 @@
 
         async function loadMessages() {
             try {
-                const snapshot = await db.collection('messages').get();
+                const container = document.getElementById('messages-feed');
+                container.innerHTML = '<div class="loading">⏳ Nap chaje mesaj yo...</div>';
+                
+                const snapshot = await db.collection('messages')
+                    .orderBy('approvedAt', 'desc')
+                    .get();
                 
                 const messages = [];
                 snapshot.forEach(doc => {
@@ -525,18 +547,18 @@
             if (messages.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--muted);">
-                        📝 Poko gen mesaj isit.<br>
+                        📝 Poko gen mesaj piblik isit.<br>
                         <small>Ou ka ekri premye a!</small>
                     </div>
                 `;
                 return;
             }
 
-            // Trie mesaj yo
+            // Trie mesaj yo dapre dat apwobasyon
             messages.sort((a, b) => {
                 const timeA = a.approvedAt ? a.approvedAt.toDate().getTime() : 0;
                 const timeB = b.approvedAt ? b.approvedAt.toDate().getTime() : 0;
-                return timeB - timeA;
+                return timeB - timeA; // Pi gran a anlè
             });
 
             container.innerHTML = messages.map(msg => `
@@ -623,16 +645,19 @@
                 
                 const data = doc.data();
 
-                // Kreye mesaj apwouve a
-                await db.collection('messages').add({
+                // KORÈKSYON: Asire w ke tout done yo transfere
+                const messageData = {
                     pseudo: data.pseudo || 'Zanmi',
                     mood: data.mood || '',
                     text: data.text || '',
                     consent: data.consent || false,
                     approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp(), // Kenbe dat orijinal la
                     comments: []
-                });
+                };
+
+                // Kreye mesaj apwouve a
+                await db.collection('messages').add(messageData);
 
                 // Efase mesaj an atant
                 await docRef.delete();
@@ -640,13 +665,13 @@
                 // Afiche konfimasyon
                 showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
 
-                // Rechaje imedyatman
-                await loadMessages();
-                await loadPendingMessages();
+                // KORÈKSYON: Rechaje DEZYÈM lis yo
+                await loadMessages();          // Lis mesaj piblik
+                await loadPendingMessages();   // Lis mesaj kap tann
                 
             } catch (error) {
                 console.error('❌ Erè apwobasyon:', error);
-                showError('Erè apwouve mesaj la.');
+                showError('Erè apwouve mesaj la: ' + error.message);
             }
         }
 
@@ -718,6 +743,8 @@
         window.approveMessage = approveMessage;
         window.rejectMessage = rejectMessage;
         window.openWhatsApp = openWhatsApp;
+        window.loadMessages = loadMessages;
+        window.loadPendingMessages = loadPendingMessages;
     </script>
 </body>
 </html>
