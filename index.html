@@ -355,6 +355,53 @@
             90% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-10px); }
         }
+
+        .demo-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .firebase-status {
+            padding: 10px;
+            border-radius: var(--radius);
+            margin: 10px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .firebase-connected {
+            background: #d1fae5;
+            color: #059669;
+            border-left: 4px solid #059669;
+        }
+
+        .firebase-error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .setup-guide {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+        }
+
+        .setup-guide h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-guide ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .setup-guide li {
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -368,6 +415,24 @@
 
             <div class="support-image">
                 🤝
+            </div>
+
+            <!-- Firebase Status -->
+            <div id="firebase-status" class="firebase-status" style="display: none;">
+                🔄 Nap teste koneksyon Firebase...
+            </div>
+
+            <!-- Guide Configuration Firebase -->
+            <div class="setup-guide" id="setup-guide">
+                <h4>📋 Enstriksyon Konfigirasyon Firebase</h4>
+                <ol>
+                    <li>Ale nan <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a></li>
+                    <li>Kreye yon pwojè nouvo oswa chwazi youn ki egziste deja</li>
+                    <li>Nan "Build" → "Firestore Database" → Kreye baz done</li>
+                    <li>Chwazi "Kommencer an mode test"</li>
+                    <li>Nan "Paramètres" → "Paramètres du projet" → Kopye konfigirasyon yo</li>
+                    <li>Kole yo nan kòd JavaScript la anba "CONFIGURATION FIREBASE"</li>
+                </ol>
             </div>
 
             <!-- Citation inspirante -->
@@ -389,7 +454,7 @@
 
                 <div class="form-group">
                     <select id="mood">
-                        <option value="">🎭 Kijan kè w santi jidi a?</option>
+                        <option value="">🎭 Kijan kè w santi jodi a?</option>
                         <option value="sad">😢 Kè fè mal</option>
                         <option value="anxious">😰 Enkyetid ap kraze m</option>
                         <option value="lost">😵 Mwen pèdi chemen</option>
@@ -475,21 +540,61 @@
 
     <script>
         // ========== CONFIGURATION FIREBASE ==========
-     const firebaseConfig = {
-  apiKey: "AIzaSyA1NHPyvUBVRTR7nbHXy9M3LU4wQ49TtC8",
-  authDomain: "sante-mantal-ayisyen.firebaseapp.com",
-  projectId: "sante-mantal-ayisyen",
-  storageBucket: "sante-mantal-ayisyen.firebasestorage.app",
-  messagingSenderId: "997244295411",
-  appId: "1:997244295411:web:0cd7911fbbbb3cd0933f86"
+        // 🔥 REMPLACE AVEC TES VRAIES CLÉS FIREBASE
+       const firebaseConfig = {
+  apiKey: "AIzaSyBS4tSSW7SIcLnGijYhrpmqSW7SvfbObA8",
+  authDomain: "sante-mentale-hd.firebaseapp.com",
+  projectId: "sante-mentale-hd",
+  storageBucket: "sante-mentale-hd.firebasestorage.app",
+  messagingSenderId: "583697521987",
+  appId: "1:583697521987:web:0744c3865c05904bcee3f6"
 };
 
-        // Initialiser Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Variables globales
+        let db = null;
+        let firebaseConnected = false;
+        let currentQuoteIndex = 0;
+        let allMessages = [];
 
-        // Configuration
-        const ADMIN_CODE = "sante123";
+        // Messages de démonstration (backup si Firebase pa konekte)
+        const demoMessages = [
+            {
+                id: 'demo1',
+                pseudo: 'Marie',
+                mood: 'sad',
+                text: 'Mwen santi mwen sèl ak chagren jodi a. Li difisil pou m kenbe fòm.',
+                approvedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                comments: [
+                    {
+                        pseudo: 'Zanmi',
+                        text: 'Ou pa poukont ou Marie. Nou la pou w.',
+                        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
+                    }
+                ]
+            },
+            {
+                id: 'demo2',
+                pseudo: 'Jean',
+                mood: 'anxious',
+                text: 'Enkyetid ap kraze m depi 2 semèn. Mwen pa ka dòmi byen.',
+                approvedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
+                comments: []
+            },
+            {
+                id: 'demo3',
+                pseudo: 'Sophie',
+                mood: 'hopeful',
+                text: 'Jodi a mwen deside chèche èd. Se yon premye etap enpòtan pou mwen.',
+                approvedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                comments: [
+                    {
+                        pseudo: 'Zanmi',
+                        text: 'Bravo Sophie! Sa se yon gwo etap. 🎉',
+                        createdAt: new Date(Date.now() - 23 * 60 * 60 * 1000)
+                    }
+                ]
+            }
+        ];
 
         // Messages de soutien
         const inspirationData = {
@@ -505,15 +610,6 @@
                 "Ou merite renmen ak respè",
                 "Pa janm bay espwa, bon moman yo ap vini"
             ],
-            encouragements: [
-                "Mèsi pou kouraj ou 🌸",
-                "Vwa ou enpòtan anpil 💫",
-                "Mèsi pou konfyans ou 🌿",
-                "Ou fè yon bon jan 👏",
-                "Nou la pou ou 💝",
-                "Kouray ou enspire moun 🎯",
-                "Ou pi fò pase ou panse 💪"
-            ],
             courageMessages: [
                 "Mèsi pou kouraj ou! 🌸 Kè poze ak fòs pou w.",
                 "Vwa ou enpòtan anpil 💫 Mèsi pou pataje kè w.",
@@ -524,10 +620,6 @@
                 "Ou pi fò pase ou panse 💪 Mèsi pou pataj la."
             ]
         };
-
-        // Variables globales
-        let currentQuoteIndex = 0;
-        let allMessages = [];
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
@@ -540,30 +632,94 @@
             await loadMessages();
             showQuote(currentQuoteIndex);
             
-            // Koute chanjman nan baz done an pou tout moun ka wè mesaj imedyatman
-            setupRealtimeListener();
+            // Teste Firebase après un délai
+            setTimeout(() => {
+                initializeFirebase();
+            }, 1000);
         }
 
-        // 🔥 KORÈKSYON ENPÒTAN: Koute chanjman an tan reyèl
+        // 🔥 INITIALISATION FIREBASE
+        async function initializeFirebase() {
+            try {
+                const statusDiv = document.getElementById('firebase-status');
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'firebase-status';
+                statusDiv.innerHTML = '🔄 Nap teste koneksyon Firebase...';
+
+                // Test si Firebase est déjà initialisé
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                db = firebase.firestore();
+                
+                // Tester la connexion avec un timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 5000)
+                );
+                
+                const connectionPromise = db.collection('test').limit(1).get();
+                
+                await Promise.race([connectionPromise, timeoutPromise]);
+                
+                firebaseConnected = true;
+                statusDiv.className = 'firebase-status firebase-connected';
+                statusDiv.innerHTML = '✅ Firebase konekte! Mesaj yo ap sere nan baz done.';
+                
+                console.log("✅ Firebase konekte avèk siksè!");
+                
+                // Masque le guide de configuration
+                document.getElementById('setup-guide').style.display = 'none';
+                
+                // Démarrer l'écoute en temps réel
+                setupRealtimeListener();
+                
+                // Recharger les messages depuis Firebase
+                await loadMessages();
+                
+            } catch (error) {
+                console.error('❌ Erè koneksyon Firebase:', error);
+                firebaseConnected = false;
+                
+                const statusDiv = document.getElementById('firebase-status');
+                statusDiv.className = 'firebase-status firebase-error';
+                statusDiv.innerHTML = '⚠️ Firebase pa konekte. Ap itilize sistèm demo. <button onclick="showSetupGuide()" style="background: none; border: none; color: #dc2626; text-decoration: underline; cursor: pointer;">Klike isit pou konfigure Firebase</button>';
+                
+                console.log("🔄 Itilize sistèm demo...");
+            }
+        }
+
+        // 🔥 FONKSYON POU MONTRE GUIDE KONFIGIRASYON
+        function showSetupGuide() {
+            document.getElementById('setup-guide').style.display = 'block';
+        }
+
+        // 🔥 KOUTE CHANJMAN SI FIREBASE KONEKTE
         function setupRealtimeListener() {
-            db.collection('messages')
-                .where('status', '==', 'approved')
-                .orderBy('approvedAt', 'desc')
-                .onSnapshot((snapshot) => {
-                    console.log("🔄 Mizajou an tan reyèl!");
-                    allMessages = [];
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        allMessages.push({ 
-                            id: doc.id, 
-                            ...data,
-                            approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+            if (!firebaseConnected) return;
+            
+            try {
+                db.collection('messages')
+                    .where('status', '==', 'approved')
+                    .orderBy('approvedAt', 'desc')
+                    .onSnapshot((snapshot) => {
+                        console.log("🔄 Mizajou an tan reyèl!");
+                        allMessages = [];
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            allMessages.push({ 
+                                id: doc.id, 
+                                ...data,
+                                approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+                            });
                         });
+                        displayMessages(allMessages);
+                    }, (error) => {
+                        console.error('Erè koute mesaj:', error);
                     });
-                    displayMessages(allMessages);
-                }, (error) => {
-                    console.error('Erè koute mesaj:', error);
-                });
+            } catch (error) {
+                console.error('Erè setup listener:', error);
+            }
         }
 
         function setupEventListeners() {
@@ -629,21 +785,40 @@
             }
 
             try {
-                // 🔥 Voye mesaj la nan koleksyon "messages_pending" pou apwobasyon
-                await db.collection('messages_pending').add({
-                    pseudo: pseudo,
-                    mood: mood,
-                    text: text,
-                    consent: consent,
-                    status: 'pending',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 🔥 Montre mesaj kouraj la
-                showCourageMessage();
-                
-                // 🔥 Reset fòm nan
-                document.getElementById('message-form').reset();
+                if (firebaseConnected) {
+                    // 🔥 SI FIREBASE KONEKTE - SÈVI AK FIREBASE
+                    await db.collection('messages_pending').add({
+                        pseudo: pseudo,
+                        mood: mood,
+                        text: text,
+                        consent: consent,
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    showCourageMessage();
+                    document.getElementById('message-form').reset();
+                    
+                } else {
+                    // 🔥 SI FIREBASE PA KONEKTE - SÈVI AK SISTÈM DEMO
+                    const newMessage = {
+                        id: 'demo-' + Date.now(),
+                        pseudo: pseudo,
+                        mood: mood,
+                        text: text,
+                        approvedAt: new Date(),
+                        comments: []
+                    };
+                    
+                    demoMessages.unshift(newMessage);
+                    allMessages.unshift(newMessage);
+                    
+                    displayMessages(allMessages);
+                    showCourageMessage();
+                    document.getElementById('message-form').reset();
+                    
+                    showSuccess('💝 Mesaj ou an ajoute! (Sistèm demo)');
+                }
                 
             } catch (error) {
                 console.error('Erè:', error);
@@ -656,26 +831,36 @@
                 const container = document.getElementById('messages-feed');
                 container.innerHTML = '<div class="loading">⏳ Nap chaje mesaj yo...</div>';
                 
-                const snapshot = await db.collection('messages')
-                    .where('status', '==', 'approved')
-                    .orderBy('approvedAt', 'desc')
-                    .get();
-                
-                allMessages = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    allMessages.push({ 
-                        id: doc.id, 
-                        ...data,
-                        approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+                if (firebaseConnected) {
+                    // 🔥 SI FIREBASE KONEKTE - CHAJE SOT FIREBASE
+                    const snapshot = await db.collection('messages')
+                        .where('status', '==', 'approved')
+                        .orderBy('approvedAt', 'desc')
+                        .get();
+                    
+                    allMessages = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        allMessages.push({ 
+                            id: doc.id, 
+                            ...data,
+                            approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+                        });
                     });
-                });
+                    
+                } else {
+                    // 🔥 SI FIREBASE PA KONEKTE - SÈVI AK MESAJ DEMO
+                    allMessages = [...demoMessages];
+                }
 
                 displayMessages(allMessages);
                 
             } catch (error) {
                 console.error('Erè chajman:', error);
-                showError('Pedi koneksyon. Eseye ankò.');
+                // 🔥 SI GEN ERÈ - SÈVI AK MESAJ DEMO
+                allMessages = [...demoMessages];
+                displayMessages(allMessages);
+                showError('Pedi koneksyon. Ap itilize mesaj demo.');
             }
         }
 
@@ -693,14 +878,14 @@
             }
 
             container.innerHTML = messages.map(msg => `
-                <div class="message">
+                <div class="message ${msg.id.includes('demo') ? 'demo-message' : ''}">
                     <div class="message-meta">
                         <span><strong>${escapeHtml(msg.pseudo)}</strong> • ${getMoodEmoji(msg.mood)}</span>
-                        <span>${formatDate(msg.approvedAt)}</span>
+                        <span>${formatDate(msg.approvedAt)} ${msg.id.includes('demo') ? ' (Demo)' : ''}</span>
                     </div>
                     <div class="message-content">${escapeHtml(msg.text)}</div>
                     
-                    <!-- 🔥 SISTÈM KOMANTÈ KORIJE -->
+                    <!-- SISTÈM KOMANTÈ -->
                     <div class="comments-section">
                         <div class="comment-form">
                             <input type="text" class="comment-input" placeholder="💬 Ekri yon komantè sipò..." 
@@ -710,13 +895,12 @@
                             </button>
                         </div>
                         
-                        <!-- Montre komantè ki deja egziste yo -->
                         ${msg.comments && msg.comments.length > 0 ? `
                             <div style="margin-top: 15px;">
                                 ${msg.comments.map(comment => `
                                     <div class="comment">
                                         <div class="comment-meta">
-                                            <strong>${escapeHtml(comment.pseudo)}</strong> • ${comment.createdAt ? formatDate(comment.createdAt.toDate()) : 'Nouvo'}
+                                            <strong>${escapeHtml(comment.pseudo)}</strong> • ${comment.createdAt ? formatDate(comment.createdAt) : 'Nouvo'}
                                         </div>
                                         <div>${escapeHtml(comment.text)}</div>
                                     </div>
@@ -728,7 +912,7 @@
             `).join('');
         }
 
-        // 🔥 FONKSYON POU AJOUTE KOMANTÈ KORIJE
+        // 🔥 FONKSYON POU AJOUTE KOMANTÈ
         async function addComment(messageId) {
             const commentInput = document.getElementById(`comment-input-${messageId}`);
             const commentText = commentInput.value.trim();
@@ -742,15 +926,24 @@
                 const comment = {
                     pseudo: 'Zanmi',
                     text: commentText,
-                    createdAt: new Date() // 🔥 KORÈKSYON: Sèvi ak Date() olye de serverTimestamp()
+                    createdAt: new Date()
                 };
 
-                // 🔥 KORÈKSYON: Sèvi ak arrayUnion pou evite pwoblèm serverTimestamp
-                const messageRef = db.collection('messages').doc(messageId);
-                
-                await messageRef.update({
-                    comments: firebase.firestore.FieldValue.arrayUnion(comment)
-                });
+                if (firebaseConnected && !messageId.includes('demo')) {
+                    // 🔥 SI FIREBASE KONEKTE - AJOUTE NAN FIREBASE
+                    const messageRef = db.collection('messages').doc(messageId);
+                    await messageRef.update({
+                        comments: firebase.firestore.FieldValue.arrayUnion(comment)
+                    });
+                } else {
+                    // 🔥 SI FIREBASE PA KONEKTE - AJOUTE NAN DEMO
+                    const message = allMessages.find(msg => msg.id === messageId);
+                    if (message) {
+                        if (!message.comments) message.comments = [];
+                        message.comments.push(comment);
+                        displayMessages(allMessages);
+                    }
+                }
 
                 commentInput.value = '';
                 showSuccess('💬 Komantè ou an ajoute!');
@@ -761,10 +954,11 @@
             }
         }
 
+        // 🔥 FONKSYON ADMIN
         async function handleAdminAuth() {
             const code = document.getElementById('admin-code').value;
             
-            if (code !== ADMIN_CODE) {
+            if (code !== "sante123") {
                 showError('Kòd la pa bon. Eseye ankò.');
                 return;
             }
@@ -774,6 +968,15 @@
         }
 
         async function loadPendingMessages() {
+            if (!firebaseConnected) {
+                document.getElementById('pending-messages').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--muted);">
+                        ⚠️ Firebase pa konekte. Panel admin pa disponib.
+                    </div>
+                `;
+                return;
+            }
+
             try {
                 const snapshot = await db.collection('messages_pending').get();
                 const pending = [];
@@ -826,9 +1029,12 @@
         }
 
         async function approveMessage(id) {
+            if (!firebaseConnected) {
+                showError('Firebase pa konekte. Pa ka apwouve mesaj.');
+                return;
+            }
+
             try {
-                console.log("🔄 Apwouve mesaj:", id);
-                
                 const docRef = db.collection('messages_pending').doc(id);
                 const doc = await docRef.get();
                 
@@ -839,7 +1045,6 @@
                 
                 const data = doc.data();
 
-                // 🔥 KORÈKSYON: Kreye mesaj apwouve a ak done konplè
                 await db.collection('messages').add({
                     pseudo: data.pseudo || 'Zanmi',
                     mood: data.mood || '',
@@ -851,13 +1056,8 @@
                     status: 'approved'
                 });
 
-                // 🔥 KORÈKSYON: Efase mesaj an atant apre apwobasyon
                 await docRef.delete();
-
-                // Afiche konfimasyon
                 showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
-
-                // Rechaje lis mesaj kap tann
                 await loadPendingMessages();
                 
             } catch (error) {
@@ -867,6 +1067,11 @@
         }
 
         async function rejectMessage(id) {
+            if (!firebaseConnected) {
+                showError('Firebase pa konekte. Pa ka refize mesaj.');
+                return;
+            }
+
             if (!confirm('Eske w sèten w vle retire mesaj sa a?')) return;
 
             try {
@@ -940,6 +1145,7 @@
         window.addComment = addComment;
         window.showNextQuote = showNextQuote;
         window.showPreviousQuote = showPreviousQuote;
+        window.showSetupGuide = showSetupGuide;
     </script>
 </body>
 </html>
