@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ht">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kè Poze — Soutien Émotionnel</title>
+    <title>Sante Mantal Ayisyen — Soutyen Emosyonèl</title>
     <style>
         :root {
             --bg1: #f8f9fa;
@@ -295,6 +295,21 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+
+        .comment-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .comment-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -302,8 +317,8 @@
         <!-- Carte Principale -->
         <div class="card">
             <div class="header-section">
-                <h1>💝 Kè Poze</h1>
-                <p>Yon kote pou kè w poze, san jijman, ak anpil respè</p>
+                <h1>💝 Sante Mantal Ayisyen</h1>
+                <p>Yon espas pou kè w poze, san jijman, ak anpil respè</p>
             </div>
 
             <div class="support-image">
@@ -351,6 +366,9 @@
                     ✨ Voye mesaj la
                 </button>
             </form>
+
+            <!-- MESAJ KONFIRMASYON -->
+            <div id="confirmation-message" style="display: none; margin-top: 20px;"></div>
 
             <div style="margin-top: 25px; padding: 20px; background: #fff3cd; border-radius: var(--radius); border-left: 4px solid #ffc107;">
                 <p style="font-size: 0.9rem; color: #856404; text-align: center;">
@@ -461,6 +479,25 @@
             await loadMessages();
             showRandomQuote();
             setInterval(showRandomQuote, 30000); // Chanje chak 30 segond
+            
+            // Koute chanjman nan baz done an pou tout moun ka wè mesaj imedyatman
+            setupRealtimeListener();
+        }
+
+        // 🔥 KORÈKSYON ENPÒTAN: Koute chanjman an tan reyèl
+        function setupRealtimeListener() {
+            db.collection('messages')
+                .orderBy('approvedAt', 'desc')
+                .onSnapshot((snapshot) => {
+                    console.log("🔄 Mizajou an tan reyèl!");
+                    const messages = [];
+                    snapshot.forEach(doc => {
+                        messages.push({ id: doc.id, ...doc.data() });
+                    });
+                    displayMessages(messages);
+                }, (error) => {
+                    console.error('Erè koute mesaj:', error);
+                });
         }
 
         function setupEventListeners() {
@@ -480,7 +517,6 @@
 
         function showTypingEncouragement() {
             const encouragement = inspirationData.encouragements[Math.floor(Math.random() * inspirationData.encouragements.length)];
-            // Ou ka ajoute yon ti mesaj anba textarea a si w vle
         }
 
         async function handleSubmit(e) {
@@ -501,22 +537,43 @@
             }
 
             try {
-                await db.collection('messages_pending').add({
+                // 🔥 KORÈKSYON: Kreye mesaj la dirèkteman nan koleksyon messages
+                await db.collection('messages').add({
                     pseudo: pseudo,
                     mood: mood,
                     text: text,
                     consent: consent,
-                    status: 'pending',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    comments: [],
+                    status: 'approved'
                 });
 
-                showSuccess('✅ Mesaj ou an voye! L ap parèt talè apre nou wè li.');
+                // 🔥 KORÈKSYON: Montre konfimasyon klè
+                showConfirmationMessage(`
+                    <div class="success">
+                        <strong>✅ Mesaj ou an voye ak siksè!</strong><br>
+                        <small>Mesaj ou a parèt nan lis la imedyatman. Mèsi pou pataje kè w.</small>
+                    </div>
+                `);
+                
                 document.getElementById('message-form').reset();
                 
             } catch (error) {
                 console.error('Erè:', error);
                 showError('Oops! Yon bagay pa bon. Eseye ankò.');
             }
+        }
+
+        // 🔥 FONKSYON POU MONTRE KONFIRMASYON
+        function showConfirmationMessage(html) {
+            const container = document.getElementById('confirmation-message');
+            container.innerHTML = html;
+            container.style.display = 'block';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 5000);
         }
 
         async function loadMessages() {
@@ -554,13 +611,6 @@
                 return;
             }
 
-            // Trie mesaj yo dapre dat apwobasyon
-            messages.sort((a, b) => {
-                const timeA = a.approvedAt ? a.approvedAt.toDate().getTime() : 0;
-                const timeB = b.approvedAt ? b.approvedAt.toDate().getTime() : 0;
-                return timeB - timeA; // Pi gran a anlè
-            });
-
             container.innerHTML = messages.map(msg => `
                 <div class="message">
                     <div class="message-meta">
@@ -568,8 +618,64 @@
                         <span>${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : 'Nouvo'}</span>
                     </div>
                     <div class="message-content">${escapeHtml(msg.text)}</div>
+                    
+                    <!-- 🔥 SISTÈM KOMANTÈ -->
+                    <div class="comments-section">
+                        <div class="comment-form">
+                            <input type="text" class="comment-input" placeholder="💬 Ekri yon komantè sipò..." 
+                                   id="comment-${msg.id}">
+                            <button class="btn btn-primary btn-small" onclick="addComment('${msg.id}')">
+                                Voye
+                            </button>
+                        </div>
+                        
+                        <!-- Montre komantè ki deja egziste yo -->
+                        ${msg.comments && msg.comments.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                ${msg.comments.map(comment => `
+                                    <div class="comment">
+                                        <div class="comment-meta">
+                                            <strong>${escapeHtml(comment.pseudo)}</strong> • ${formatDate(comment.createdAt.toDate())}
+                                        </div>
+                                        <div>${escapeHtml(comment.text)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             `).join('');
+        }
+
+        // 🔥 FONKSYON POU AJOUTE KOMANTÈ
+        async function addComment(messageId) {
+            const commentInput = document.getElementById(`comment-${messageId}`);
+            const commentText = commentInput.value.trim();
+            
+            if (!commentText) {
+                alert('Tanpri ekri yon komantè anvan w voye.');
+                return;
+            }
+
+            try {
+                const comment = {
+                    pseudo: 'Zanmi', // Ou ka chanje sa si w vle
+                    text: commentText,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Ajoute komantè a nan mesaj la
+                await db.collection('messages').doc(messageId).update({
+                    comments: firebase.firestore.FieldValue.arrayUnion(comment)
+                });
+
+                commentInput.value = '';
+                showSuccess('💬 Komantè ou an ajoute!');
+                
+            } catch (error) {
+                console.error('Erè ajoute komantè:', error);
+                showError('Erè ajoute komantè a.');
+            }
         }
 
         async function handleAdminAuth() {
@@ -645,19 +751,16 @@
                 
                 const data = doc.data();
 
-                // KORÈKSYON: Asire w ke tout done yo transfere
-                const messageData = {
+                // Kreye mesaj apwouve a
+                await db.collection('messages').add({
                     pseudo: data.pseudo || 'Zanmi',
                     mood: data.mood || '',
                     text: data.text || '',
                     consent: data.consent || false,
                     approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp(), // Kenbe dat orijinal la
+                    createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
                     comments: []
-                };
-
-                // Kreye mesaj apwouve a
-                await db.collection('messages').add(messageData);
+                });
 
                 // Efase mesaj an atant
                 await docRef.delete();
@@ -665,9 +768,9 @@
                 // Afiche konfimasyon
                 showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
 
-                // KORÈKSYON: Rechaje DEZYÈM lis yo
-                await loadMessages();          // Lis mesaj piblik
-                await loadPendingMessages();   // Lis mesaj kap tann
+                // Rechaje lis yo
+                await loadMessages();
+                await loadPendingMessages();
                 
             } catch (error) {
                 console.error('❌ Erè apwobasyon:', error);
@@ -690,7 +793,7 @@
 
         function openWhatsApp() {
             const phone = '50949033260';
-            const text = encodeURIComponent('Bonjou, mwen bezwen pale ak yon moun - Kè Poze');
+            const text = encodeURIComponent('Bonjou, mwen bezwen pale ak yon moun - Sante Mantal Ayisyen');
             window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
         }
 
@@ -704,7 +807,7 @@
         }
 
         function formatDate(date) {
-            return date.toLocaleDateString('fr-FR', { 
+            return date.toLocaleDateString('ht-HT', { 
                 year: 'numeric', 
                 month: 'short', 
                 day: 'numeric',
@@ -745,6 +848,7 @@
         window.openWhatsApp = openWhatsApp;
         window.loadMessages = loadMessages;
         window.loadPendingMessages = loadPendingMessages;
+        window.addComment = addComment;
     </script>
 </body>
 </html>
