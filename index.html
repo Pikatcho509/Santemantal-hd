@@ -112,6 +112,11 @@
             color: var(--muted);
         }
 
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
         .messages-container {
             max-height: 500px;
             overflow-y: auto;
@@ -123,6 +128,44 @@
             border-radius: var(--radius);
             margin-bottom: 15px;
             border-left: 4px solid var(--accent);
+        }
+
+        .message-meta {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .comments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .comment {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .comment-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 14px;
         }
 
         .loading {
@@ -233,15 +276,14 @@
 
     <script>
         // ========== CONFIGURATION FIREBASE ==========
-        // REMPLACEZ AVEC VOS CLÉS FIREBASE
-       const firebaseConfig = {
-  apiKey: "AIzaSyBS4tSSW7SIcLnGijYhrpmqSW7SvfbObA8",
-  authDomain: "sante-mentale-hd.firebaseapp.com",
-  projectId: "sante-mentale-hd",
-  storageBucket: "sante-mentale-hd.firebasestorage.app",
-  messagingSenderId: "583697521987",
-  appId: "1:583697521987:web:0744c3865c05904bcee3f6"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "votre-projet.firebaseapp.com",
+            projectId: "votre-projet-id",
+            storageBucket: "votre-projet.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
@@ -275,7 +317,6 @@
             }
 
             try {
-                // Ajouter à Firestore
                 await db.collection('messages_pending').add({
                     pseudo: pseudo,
                     mood: mood,
@@ -329,12 +370,120 @@
 
             container.innerHTML = messages.map(msg => `
                 <div class="message">
-                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                    <div class="message-meta">
                         ${escapeHtml(msg.pseudo)} • ${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : ''}
                     </div>
                     <div>${escapeHtml(msg.text)}</div>
+                    
+                    <!-- Section Commentaires -->
+                    <div class="comments-section">
+                        <strong>💬 Kòmantè (${msg.comments ? msg.comments.length : 0})</strong>
+                        
+                        ${msg.comments && msg.comments.length > 0 ? 
+                            msg.comments.map(comment => `
+                                <div class="comment">
+                                    <div class="comment-meta">
+                                        ${escapeHtml(comment.author)} • ${comment.timestamp ? formatDate(comment.timestamp.toDate()) : ''}
+                                    </div>
+                                    <div>${escapeHtml(comment.text)}</div>
+                                    <button onclick="deleteComment('${msg.id}', '${comment.id}')" class="btn btn-secondary btn-small" style="margin-top: 5px; padding: 4px 8px; font-size: 12px;">
+                                        🗑️ Efase
+                                    </button>
+                                </div>
+                            `).join('') 
+                            : 
+                            '<div style="color: var(--muted); font-style: italic; margin-top: 5px;">Pa gen kòmantè ankò.</div>'
+                        }
+                        
+                        <!-- Formulaire pour ajouter un commentaire -->
+                        <div class="comment-form">
+                            <input type="text" class="comment-input" id="comment-input-${msg.id}" placeholder="Ekri yon kòmantè...">
+                            <button onclick="addComment('${msg.id}')" class="btn btn-primary btn-small">
+                                💬 Kòmantè
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        // FONCTION POUR AJOUTER UN COMMENTAIRE
+        async function addComment(messageId) {
+            const commentInput = document.getElementById(`comment-input-${messageId}`);
+            const commentText = commentInput.value.trim();
+
+            if (!commentText) {
+                showError('Tanpri ekri yon kòmantè.');
+                return;
+            }
+
+            try {
+                const comment = {
+                    id: generateId(), // ID unique pour le commentaire
+                    text: commentText,
+                    author: 'Moderatè', // Ou vous pouvez mettre un système de pseudo
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Récupérer le message actuel
+                const messageRef = db.collection('messages').doc(messageId);
+                const messageDoc = await messageRef.get();
+                
+                if (!messageDoc.exists) {
+                    throw new Error('Message non trouvé');
+                }
+
+                const currentData = messageDoc.data();
+                const currentComments = currentData.comments || [];
+
+                // Ajouter le nouveau commentaire
+                const updatedComments = [...currentComments, comment];
+
+                // Mettre à jour le message avec le nouveau commentaire
+                await messageRef.update({
+                    comments: updatedComments
+                });
+
+                commentInput.value = '';
+                showSuccess('✅ Kòmantè ajoute!');
+                await loadMessages(); // Recharger les messages
+                
+            } catch (error) {
+                console.error('Erè ajout kòmantè:', error);
+                showError('Erè ajout kòmantè.');
+            }
+        }
+
+        // FONCTION POUR SUPPRIMER UN COMMENTAIRE
+        async function deleteComment(messageId, commentId) {
+            if (!confirm('Èske w sèten w vle efase kòmantè sa a?')) return;
+
+            try {
+                const messageRef = db.collection('messages').doc(messageId);
+                const messageDoc = await messageRef.get();
+                
+                if (!messageDoc.exists) {
+                    throw new Error('Message non trouvé');
+                }
+
+                const currentData = messageDoc.data();
+                const currentComments = currentData.comments || [];
+
+                // Filtrer pour enlever le commentaire
+                const updatedComments = currentComments.filter(comment => comment.id !== commentId);
+
+                // Mettre à jour le message
+                await messageRef.update({
+                    comments: updatedComments
+                });
+
+                showSuccess('✅ Kòmantè efase!');
+                await loadMessages(); // Recharger les messages
+                
+            } catch (error) {
+                console.error('Erè efasman kòmantè:', error);
+                showError('Erè efasman kòmantè.');
+            }
         }
 
         async function handleAdminAuth() {
@@ -382,15 +531,15 @@
 
             container.innerHTML = messages.map(msg => `
                 <div class="message" style="margin-bottom: 15px;">
-                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                    <div class="message-meta">
                         ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : ''}
                     </div>
                     <div>${escapeHtml(msg.text)}</div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button onclick="approveMessage('${msg.id}')" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
+                        <button onclick="approveMessage('${msg.id}')" class="btn btn-primary btn-small">
                             ✅ Apwouve
                         </button>
-                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
+                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-secondary btn-small">
                             ❌ Refize
                         </button>
                     </div>
@@ -399,49 +548,38 @@
         }
 
         async function approveMessage(id) {
-    try {
-        console.log("Tentative d'approbation du message:", id);
-        
-        // 1. Récupérer le message en attente
-        const docRef = db.collection('messages_pending').doc(id);
-        const doc = await docRef.get();
-        
-        if (!doc.exists) {
-            throw new Error("Message non trouvé");
+            try {
+                const docRef = db.collection('messages_pending').doc(id);
+                const doc = await docRef.get();
+                
+                if (!doc.exists) {
+                    throw new Error("Message non trouvé");
+                }
+                
+                const data = doc.data();
+
+                const newMessage = {
+                    pseudo: data.pseudo || 'Anonim',
+                    mood: data.mood || '',
+                    text: data.text || '',
+                    consent: data.consent || false,
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+                    comments: [] // Initialiser les commentaires vides
+                };
+                
+                await db.collection('messages').add(newMessage);
+                await docRef.delete();
+
+                await loadMessages();
+                await loadPendingMessages();
+                showSuccess('✅ Mesaj apwouve avèk siksè!');
+                
+            } catch (error) {
+                console.error('Erè apwobasyon:', error);
+                showError('Erè apwobasyon mesaj');
+            }
         }
-        
-        const data = doc.data();
-        console.log("Données du message:", data);
-
-        // 2. Créer le message approuvé
-        const newMessage = {
-            pseudo: data.pseudo || 'Anonim',
-            mood: data.mood || '',
-            text: data.text || '',
-            consent: data.consent || false,
-            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        console.log("Nouveau message approuvé:", newMessage);
-        
-        await db.collection('messages').add(newMessage);
-
-        // 3. Supprimer l'attente
-        await docRef.delete();
-        
-        console.log("Message approuvé avec succès!");
-
-        // 4. Recharger
-        await loadMessages();
-        await loadPendingMessages();
-        showSuccess('✅ Mesaj apwouve avèk siksè!');
-        
-    } catch (error) {
-        console.error('Erè detay apwobasyon:', error);
-        showError('Erè apwobasyon: ' + error.message);
-    }
-}
 
         async function rejectMessage(id) {
             if (!confirm('Èske w sèten w vle refize mesaj sa a?')) return;
@@ -457,6 +595,10 @@
         }
 
         // Utilitaires
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
         function showError(message) {
             const container = document.getElementById('messages-feed');
             const errorDiv = document.createElement('div');
@@ -478,7 +620,7 @@
         }
 
         function formatDate(date) {
-            return date.toLocaleDateString('fr-FR');
+            return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
         }
 
         function escapeHtml(text) {
@@ -490,6 +632,8 @@
         // Exposer les fonctions globales
         window.approveMessage = approveMessage;
         window.rejectMessage = rejectMessage;
+        window.addComment = addComment;
+        window.deleteComment = deleteComment;
     </script>
 </body>
 </html>
