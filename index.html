@@ -453,7 +453,33 @@
                 showError('Erè ajout kòmantè.');
             }
         }
+async function debugApprove() {
+    try {
+        // Voir les messages en attente
+        const snapshot = await db.collection('messages_pending').get();
+        console.log("📋 Messages en attente:", snapshot.size);
+        
+        snapshot.forEach(doc => {
+            console.log("📝 Message:", doc.id, doc.data());
+        });
+        
+        // Tester un message simple
+        const testMsg = await db.collection('messages').add({
+            pseudo: 'Test',
+            text: 'Message de test',
+            approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log("✅ Test réussi, message ID:", testMsg.id);
+        showSuccess('✅ Test approbation réussi!');
+        
+    } catch (error) {
+        console.error('❌ Test échoué:', error);
+        showError('Test échoué: ' + error.message);
+    }
+}
 
+// Dans la console du navigateur, tapez: debugApprove()
         // FONCTION POUR SUPPRIMER UN COMMENTAIRE
         async function deleteComment(messageId, commentId) {
             if (!confirm('Èske w sèten w vle efase kòmantè sa a?')) return;
