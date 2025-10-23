@@ -31,7 +31,6 @@
             justify-content: center;
             padding: 20px;
             color: #222;
-            line-height: 1.6;
         }
 
         .container {
@@ -53,7 +52,6 @@
             border-radius: var(--radius);
             box-shadow: 0 8px 30px rgba(50, 50, 70, 0.08);
             padding: 25px;
-            backdrop-filter: blur(10px);
         }
 
         header {
@@ -69,7 +67,6 @@
 
         header p {
             color: var(--muted);
-            font-size: 1.1rem;
         }
 
         .form-group {
@@ -83,13 +80,6 @@
             border-radius: var(--radius);
             font-size: 16px;
             font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 143, 163, 0.1);
         }
 
         textarea {
@@ -105,11 +95,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         .btn-primary {
@@ -119,7 +104,6 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 143, 163, 0.3);
         }
 
         .btn-secondary {
@@ -128,22 +112,9 @@
             color: var(--muted);
         }
 
-        .btn-emergency {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
         .messages-container {
             max-height: 500px;
             overflow-y: auto;
-            padding-right: 10px;
         }
 
         .message {
@@ -152,39 +123,6 @@
             border-radius: var(--radius);
             margin-bottom: 15px;
             border-left: 4px solid var(--accent);
-        }
-
-        .message-meta {
-            font-size: 0.85rem;
-            color: var(--muted);
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: between;
-            gap: 10px;
-        }
-
-        .message-content {
-            margin-bottom: 10px;
-        }
-
-        .comments-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .comment {
-            background: rgba(0, 0, 0, 0.03);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .admin-panel {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid rgba(0, 0, 0, 0.1);
         }
 
         .loading {
@@ -210,53 +148,6 @@
             margin: 10px 0;
             text-align: center;
         }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .floating-hearts {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            pointer-events: none;
-        }
-
-        .heart {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #ff8fa3, #ffd29f);
-            border-radius: 50%;
-            margin: 5px;
-            animation: float 6s infinite;
-            opacity: 0.3;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        .heart:nth-child(2) { animation-delay: 2s; }
-        .heart:nth-child(3) { animation-delay: 4s; }
     </style>
 </head>
 <body>
@@ -267,19 +158,6 @@
                 <h1>🌈 Santé Mentale HD</h1>
                 <p>Yon espas an sekirite pou pataje sa w santi anonimman</p>
             </header>
-
-            <!-- Section Citation -->
-            <div class="form-group">
-                <div style="display: flex; justify-content: between; align-items: center; gap: 15px;">
-                    <div style="flex: 1;">
-                        <strong>💫 Mesaj o aza jodi a</strong>
-                        <div id="daily-quote" style="margin-top: 5px; color: var(--muted); font-style: italic;">
-                            "Pale sou soufrans ou, se deja komanse geri"
-                        </div>
-                    </div>
-                    <button id="new-quote" class="btn btn-secondary">🔄 Nouvo</button>
-                </div>
-            </div>
 
             <!-- Formulaire de Message -->
             <form id="message-form">
@@ -293,13 +171,12 @@
                         <option value="sad">😢 Tris</option>
                         <option value="anxious">😰 Anksye</option>
                         <option value="lost">😵 Pèdi</option>
-                        <option value="angry">😠 Fache</option>
                         <option value="happy">😊 Kontan</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <textarea id="message" placeholder="✍️ Ekri sa w santi... Pa janm pataje enfòmasyon pèsonèl." maxlength="1000"></textarea>
+                    <textarea id="message" placeholder="✍️ Ekri sa w santi..." maxlength="1000"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -311,22 +188,15 @@
                     </label>
                 </div>
 
-                <div id="typing-encouragement" style="text-align: center; color: #ba68c8; font-style: italic; margin: 10px 0; opacity: 0; transition: opacity 0.3s;"></div>
-
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
-                    <button type="submit" class="btn btn-primary">
-                        📤 Pibliye anonimman
-                    </button>
-                    <button type="button" id="whatsapp-btn" class="btn btn-emergency">
-                        🚨 M bezwen pale
-                    </button>
-                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    📤 Pibliye anonimman
+                </button>
             </form>
 
             <div style="margin-top: 20px; padding: 15px; background: rgba(255, 107, 107, 0.1); border-radius: var(--radius);">
                 <p style="font-size: 0.9rem; color: var(--muted); text-align: center;">
                     <strong>📞 Si w an danje, rele:</strong><br>
-                    <span style="color: #ff6b6b; font-weight: bold;">115 / 112</span> - Sèvis Ijans
+                    <span style="color: #ff6b6b; font-weight: bold;">115 / 112</span>
                 </p>
             </div>
         </div>
@@ -340,129 +210,55 @@
             </div>
 
             <!-- Panel Admin -->
-            <div class="admin-panel">
-                <h4 style="margin-bottom: 15px;">🔧 Admin / Modération</h4>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(0, 0, 0, 0.1);">
+                <h4 style="margin-bottom: 15px;">🔧 Admin</h4>
                 
                 <div class="form-group">
-                    <input type="password" id="admin-code" placeholder="🔑 Antre kòd admin" style="margin-bottom: 10px;">
-                    <button id="load-pending" class="btn btn-secondary" style="width: 100%;">
-                        📥 Chaje mesaj an atant
+                    <input type="password" id="admin-code" placeholder="🔑 Kòd admin" style="margin-bottom: 10px;">
+                    <button id="admin-btn" class="btn btn-secondary" style="width: 100%;">
+                        📥 Wè mesaj an atant
                     </button>
                 </div>
 
-                <div id="pending-section" style="display: none;">
-                    <h5 style="margin-bottom: 15px;">⏳ Mesaj an atant</h5>
+                <div id="admin-panel" style="display: none;">
                     <div id="pending-messages"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cœurs flottants -->
-    <div class="floating-hearts">
-        <div class="heart"></div>
-        <div class="heart"></div>
-        <div class="heart"></div>
-    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <!-- Modal de Confirmation -->
-    <div id="confirmation-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 id="confirm-title" style="margin-bottom: 15px;">Mèsi !</h3>
-            <p id="confirm-message" style="margin-bottom: 20px; color: var(--muted);">
-                Nou te resevwa mesaj ou. Pran swen tèt ou.
-            </p>
-            <button id="close-confirm" class="btn btn-primary">Fèmen</button>
-        </div>
-    </div>
-
-    <!-- Modal d'Urgence -->
-    <div id="emergency-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: white; padding: 20px; border-radius: var(--radius); margin-bottom: 20px;">
-                <h3 style="margin-bottom: 15px;">🚨 ATANSYON</h3>
-                <p style="margin-bottom: 10px;">Mesaj ou a gen mo ki endike w ka an danje.</p>
-                <p><strong>Tanpri kontakte èd imedyatman:</strong></p>
-                <p style="margin: 10px 0;">📞 <strong>115 / 112</strong> - Sèvis Ijans</p>
-                <p>💬 <strong>WhatsApp: 50949033260</strong></p>
-            </div>
-            <p style="color: var(--muted); margin-bottom: 20px;">Ou pa poukont ou - nou la pou ede w!</p>
-            <button id="close-emergency" class="btn btn-secondary">Mwen konprann</button>
-        </div>
-    </div>
-
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // ========== CONFIGURATION SUPABASE ==========
-        // CRÉEZ UN NOUVEAU PROJET SUR supabase.com ET REMPLACEZ CES CLÉS
-        const SUPABASE_URL = "https://ldtdahuuxyplwemczxzd.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGRhaHV1eHlwbHdlbWN6eHpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwMDgzOTEsImV4cCI6MjA3NjU4NDM5MX0.R9jTAprmQ4HwAmGV_NQqyVwvP1VXtCU5V9WSBV9w36U";
+        // ========== CONFIGURATION FIREBASE ==========
+        // REMPLACEZ AVEC VOS CLÉS FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "votre-projet.firebaseapp.com",
+            projectId: "votre-projet-id",
+            storageBucket: "votre-projet.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
 
-        // Initialisation Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         // Configuration
         const ADMIN_CODE = "sante123";
-        const DANGEROUS_WORDS = ['mwen vle mouri', 'fè tèt mwen mal', 'sui', 'suicide', 'mwen pa kapab ankò'];
-
-        // Données d'inspiration
-        const inspirationData = {
-            quotes: [
-                "Pale sou soufrans ou, se deja komanse geri",
-                "Emosyon ou merite yo tande",
-                "Pran swen sante mantal ou se yon akt kouray",
-                "Ou pa poukont ou nan chemen sa a",
-                "Chak jou se yon nouvo koumansman",
-                "Santi w mal se nòmal, ou pa fèb",
-                "Pèmèt tèt ou santi tout santiman ou"
-            ],
-            encouragements: [
-                "Mèsi paske ou pataje 🌸",
-                "Vwa ou gen valè 💫",
-                "Pran yon ti repo 🌿",
-                "Kontinye ekri 👏",
-                "Ou gen kouray 💝"
-            ]
-        };
-
-        // Éléments DOM
-        const elements = {
-            form: document.getElementById('message-form'),
-            messagesFeed: document.getElementById('messages-feed'),
-            pendingSection: document.getElementById('pending-section'),
-            pendingMessages: document.getElementById('pending-messages'),
-            confirmationModal: document.getElementById('confirmation-modal'),
-            emergencyModal: document.getElementById('emergency-modal')
-        };
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            loadMessages();
+            setupEventListeners();
         });
 
-        async function initializeApp() {
-            setupEventListeners();
-            await loadMessages();
-            showRandomQuote();
-        }
-
         function setupEventListeners() {
-            // Formulaire
-            elements.form.addEventListener('submit', handleSubmit);
-            
-            // Textarea encouragement
-            document.getElementById('message').addEventListener('focus', showTypingEncouragement);
-            
-            // Boutons
-            document.getElementById('new-quote').addEventListener('click', showRandomQuote);
-            document.getElementById('whatsapp-btn').addEventListener('click', openWhatsApp);
-            document.getElementById('load-pending').addEventListener('click', handleAdminAuth);
-            
-            // Modals
-            document.getElementById('close-confirm').addEventListener('click', () => hideModal('confirmation-modal'));
-            document.getElementById('close-emergency').addEventListener('click', () => hideModal('emergency-modal'));
+            document.getElementById('message-form').addEventListener('submit', handleSubmit);
+            document.getElementById('admin-btn').addEventListener('click', handleAdminAuth);
         }
 
         async function handleSubmit(e) {
@@ -473,68 +269,56 @@
             const text = document.getElementById('message').value.trim();
             const consent = document.getElementById('consent').checked;
 
-            // Validation
             if (!text) {
                 showError('Tanpri ekri yon mesaj.');
                 return;
             }
 
-            if (!consent) {
-                if (!confirm('Ou pa dakò konsantman an. Èske w vle kontinye?')) return;
-            }
-
-            // Vérification urgence
-            if (checkForEmergency(text)) {
-                showEmergencyAlert();
-                if (!confirm('⚠️ Mesaj ou a gen mo ki endike detres. Èske w vle kontinye?')) return;
-            }
-
             try {
-                // Envoyer à Supabase
-                const { data, error } = await supabase
-                    .from('messages_pending')
-                    .insert([{
-                        pseudo,
-                        mood,
-                        text,
-                        consent,
-                        status: 'pending',
-                        created_at: new Date().toISOString()
-                    }]);
+                // Ajouter à Firestore
+                await db.collection('messages_pending').add({
+                    pseudo: pseudo,
+                    mood: mood,
+                    text: text,
+                    consent: consent,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-                if (error) throw error;
-
-                // Succès
-                showConfirmation();
-                elements.form.reset();
+                showSuccess('✅ Mesaj voye avèk siksè! Li pral parèt apre modération.');
+                document.getElementById('message-form').reset();
                 
             } catch (error) {
                 console.error('Erè:', error);
-                showError('Erè anvoye mesaj. Tcheke koneksyon w.');
+                showError('Erè anvoye mesaj.');
             }
         }
 
         async function loadMessages() {
             try {
-                const { data: messages, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(20);
+                const snapshot = await db.collection('messages')
+                    .orderBy('approvedAt', 'desc')
+                    .limit(20)
+                    .get();
 
-                if (error) throw error;
+                const messages = [];
+                snapshot.forEach(doc => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
 
-                displayMessages(messages || []);
+                displayMessages(messages);
                 
             } catch (error) {
                 console.error('Erè chajman:', error);
-                elements.messagesFeed.innerHTML = '<div class="error">❌ Erè chajman mesaj</div>';
+                showError('Erè chajman mesaj.');
             }
         }
 
         function displayMessages(messages) {
+            const container = document.getElementById('messages-feed');
+            
             if (messages.length === 0) {
-                elements.messagesFeed.innerHTML = `
+                container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--muted);">
                         📝 Pa gen mesaj pou kounye a.<br>
                         Ou ka pataje premye mesaj ou!
@@ -543,27 +327,12 @@
                 return;
             }
 
-            elements.messagesFeed.innerHTML = messages.map(msg => `
+            container.innerHTML = messages.map(msg => `
                 <div class="message">
-                    <div class="message-meta">
-                        <span>${escapeHtml(msg.pseudo)}</span>
-                        <span>•</span>
-                        <span>${getMoodEmoji(msg.mood)} ${msg.mood || ''}</span>
-                        <span>•</span>
-                        <span>${formatDate(msg.created_at)}</span>
+                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                        ${escapeHtml(msg.pseudo)} • ${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : ''}
                     </div>
-                    <div class="message-content">${escapeHtml(msg.text)}</div>
-                    ${msg.comments && msg.comments.length > 0 ? `
-                        <div class="comments-section">
-                            <strong>💬 Kòmantè (${msg.comments.length}):</strong>
-                            ${msg.comments.map(comment => `
-                                <div class="comment">
-                                    <strong>${escapeHtml(comment.author)}:</strong> 
-                                    ${escapeHtml(comment.text)}
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
+                    <div>${escapeHtml(msg.text)}</div>
                 </div>
             `).join('');
         }
@@ -576,20 +345,22 @@
                 return;
             }
 
-            elements.pendingSection.style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'block';
             await loadPendingMessages();
         }
 
         async function loadPendingMessages() {
             try {
-                const { data: pending, error } = await supabase
-                    .from('messages_pending')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                const snapshot = await db.collection('messages_pending')
+                    .orderBy('createdAt', 'desc')
+                    .get();
 
-                if (error) throw error;
+                const pending = [];
+                snapshot.forEach(doc => {
+                    pending.push({ id: doc.id, ...doc.data() });
+                });
 
-                displayPendingMessages(pending || []);
+                displayPendingMessages(pending);
                 
             } catch (error) {
                 console.error('Erè chajman atant:', error);
@@ -598,8 +369,10 @@
         }
 
         function displayPendingMessages(messages) {
+            const container = document.getElementById('pending-messages');
+            
             if (messages.length === 0) {
-                elements.pendingMessages.innerHTML = `
+                container.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: var(--muted);">
                         ✅ Pa gen mesaj an atant
                     </div>
@@ -607,13 +380,12 @@
                 return;
             }
 
-            elements.pendingMessages.innerHTML = messages.map(msg => `
+            container.innerHTML = messages.map(msg => `
                 <div class="message" style="margin-bottom: 15px;">
-                    <div class="message-meta">
-                        ${escapeHtml(msg.pseudo)} • ${formatDate(msg.created_at)}
+                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                        ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : ''}
                     </div>
-                    <div class="message-content">${escapeHtml(msg.text)}</div>
-                    ${checkForEmergency(msg.text) ? '<div style="color: red; font-size: 0.8rem; margin-top: 5px;">🚨 DETÈS DETEKTE</div>' : ''}
+                    <div>${escapeHtml(msg.text)}</div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button onclick="approveMessage('${msg.id}')" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
                             ✅ Apwouve
@@ -629,40 +401,25 @@
         async function approveMessage(id) {
             try {
                 // Récupérer le message en attente
-                const { data: pendingMsg, error: fetchError } = await supabase
-                    .from('messages_pending')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
-
-                if (fetchError) throw fetchError;
+                const doc = await db.collection('messages_pending').doc(id).get();
+                const data = doc.data();
 
                 // Créer le message approuvé
-                const { error: insertError } = await supabase
-                    .from('messages')
-                    .insert([{
-                        ...pendingMsg,
-                        approved_at: new Date().toISOString(),
-                        comments: []
-                    }]);
-
-                if (insertError) throw insertError;
+                await db.collection('messages').add({
+                    ...data,
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
                 // Supprimer l'attente
-                const { error: deleteError } = await supabase
-                    .from('messages_pending')
-                    .delete()
-                    .eq('id', id);
-
-                if (deleteError) throw deleteError;
+                await db.collection('messages_pending').doc(id).delete();
 
                 // Recharger
                 await loadMessages();
                 await loadPendingMessages();
-                showSuccess('Mesaj apwouve avèk siksè!');
+                showSuccess('✅ Mesaj apwouve!');
                 
             } catch (error) {
-                console.error('Erè apwobasyon:', error);
+                console.error('Erè:', error);
                 showError('Erè apwobasyon mesaj');
             }
         }
@@ -671,94 +428,38 @@
             if (!confirm('Èske w sèten w vle refize mesaj sa a?')) return;
 
             try {
-                const { error } = await supabase
-                    .from('messages_pending')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-
+                await db.collection('messages_pending').doc(id).delete();
                 await loadPendingMessages();
-                showSuccess('Mesaj refize.');
-                
+                showSuccess('✅ Mesaj refize.');
             } catch (error) {
-                console.error('Erè rejè:', error);
+                console.error('Erè:', error);
                 showError('Erè refize mesaj');
             }
         }
 
         // Utilitaires
-        function showRandomQuote() {
-            const quote = inspirationData.quotes[Math.floor(Math.random() * inspirationData.quotes.length)];
-            document.getElementById('daily-quote').textContent = `"${quote}"`;
-        }
-
-        function showTypingEncouragement() {
-            const encouragement = inspirationData.encouragements[Math.floor(Math.random() * inspirationData.encouragements.length)];
-            const el = document.getElementById('typing-encouragement');
-            el.textContent = encouragement;
-            el.style.opacity = '1';
-            setTimeout(() => el.style.opacity = '0', 3000);
-        }
-
-        function checkForEmergency(text) {
-            return DANGEROUS_WORDS.some(word => text.toLowerCase().includes(word));
-        }
-
-        function showConfirmation() {
-            const encouragement = inspirationData.encouragements[Math.floor(Math.random() * inspirationData.encouragements.length)];
-            document.getElementById('confirm-title').textContent = encouragement;
-            showModal('confirmation-modal');
-        }
-
-        function showEmergencyAlert() {
-            showModal('emergency-modal');
-        }
-
-        function openWhatsApp() {
-            const phone = '50949033260';
-            const text = encodeURIComponent('Bonjou, mwen santi mwen bezwen pale ak yon moun — Santé Mentale HD');
-            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-
-        function hideModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
         function showError(message) {
-            const existingError = elements.messagesFeed.querySelector('.error');
-            if (existingError) existingError.remove();
-            
+            const container = document.getElementById('messages-feed');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
             errorDiv.textContent = message;
-            elements.messagesFeed.prepend(errorDiv);
+            container.prepend(errorDiv);
             
             setTimeout(() => errorDiv.remove(), 5000);
         }
 
         function showSuccess(message) {
+            const container = document.getElementById('messages-feed');
             const successDiv = document.createElement('div');
             successDiv.className = 'success';
             successDiv.textContent = message;
-            elements.messagesFeed.prepend(successDiv);
+            container.prepend(successDiv);
             
             setTimeout(() => successDiv.remove(), 3000);
         }
 
-        function getMoodEmoji(mood) {
-            const emojis = {
-                'sad': '😢', 'anxious': '😰', 'lost': '😵', 'angry': '😠', 'happy': '😊'
-            };
-            return emojis[mood] || '😐';
-        }
-
-        function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('fr-FR');
+        function formatDate(date) {
+            return date.toLocaleDateString('fr-FR');
         }
 
         function escapeHtml(text) {
