@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Santé Mentale HD — Soutien Émotionnel</title>
+    <title>Kè Poze — Soutien Émotionnel</title>
     <style>
         :root {
-            --bg1: #FFF7F3;
-            --bg2: #FFF2E8;
-            --accent: #ff8fa3;
-            --accent-2: #ffd29f;
-            --muted: #6b6b6b;
+            --bg1: #f8f9fa;
+            --bg2: #e9ecef;
+            --accent: #4e89ae;
+            --accent-2: #4361ee;
+            --muted: #6c757d;
             --card: #ffffff;
-            --glass: rgba(255, 255, 255, 0.72);
-            --radius: 16px;
-            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+            --glass: rgba(255, 255, 255, 0.85);
+            --radius: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         * {
@@ -24,13 +24,14 @@
         }
 
         body {
-            background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+            background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            color: #222;
+            color: #2d3748;
+            line-height: 1.6;
         }
 
         .container {
@@ -38,35 +39,55 @@
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 400px;
-            gap: 20px;
+            gap: 25px;
         }
 
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
         }
 
         .card {
             background: var(--card);
             border-radius: var(--radius);
-            box-shadow: 0 8px 30px rgba(50, 50, 70, 0.08);
-            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        header {
+        .header-section {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius);
+            color: white;
         }
 
-        header h1 {
-            color: #ff6b6b;
-            font-size: 2.2rem;
+        .header-section h1 {
+            font-size: 2.5rem;
             margin-bottom: 10px;
+            font-weight: 700;
         }
 
-        header p {
-            color: var(--muted);
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .support-image {
+            width: 100%;
+            height: 200px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
         }
 
         .form-group {
@@ -75,78 +96,198 @@
 
         input, textarea, select {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
             border-radius: var(--radius);
             font-size: 16px;
             font-family: inherit;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(78, 137, 174, 0.1);
         }
 
         textarea {
-            min-height: 120px;
+            min-height: 140px;
             resize: vertical;
+            line-height: 1.5;
         }
 
         .btn {
-            padding: 12px 25px;
+            padding: 14px 28px;
             border: none;
             border-radius: var(--radius);
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             color: white;
+            box-shadow: 0 4px 15px rgba(78, 137, 174, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 137, 174, 0.4);
         }
 
         .btn-secondary {
-            background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: white;
+            border: 2px solid #e2e8f0;
             color: var(--muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 14px;
         }
 
         .messages-container {
             max-height: 500px;
             overflow-y: auto;
+            padding-right: 10px;
         }
 
         .message {
             background: var(--glass);
-            padding: 15px;
+            padding: 20px;
             border-radius: var(--radius);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border-left: 4px solid var(--accent);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-meta {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-content {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .comments-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .comment {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #cbd5e0;
+        }
+
+        .comment-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 50px;
             color: var(--muted);
         }
 
         .error {
-            background: #ffe6e6;
-            color: #d63031;
-            padding: 15px;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 16px;
             border-radius: var(--radius);
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
+            border-left: 4px solid #dc2626;
         }
 
         .success {
-            background: #e6f7e6;
-            color: #27ae60;
-            padding: 15px;
+            background: #d1fae5;
+            color: #059669;
+            padding: 16px;
             border-radius: var(--radius);
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
+            border-left: 4px solid #059669;
+        }
+
+        .inspiration-quote {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .admin-panel {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .floating-support {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -154,77 +295,95 @@
     <div class="container">
         <!-- Carte Principale -->
         <div class="card">
-            <header>
-                <h1>🌈 Santé Mentale HD</h1>
-                <p>Yon espas an sekirite pou pataje sa w santi anonimman</p>
-            </header>
+            <div class="header-section">
+                <h1>💝 Kè Poze</h1>
+                <p>Yon kote pou kè w poze, san jijman, ak anpil respè</p>
+            </div>
+
+            <div class="support-image">
+                🤝
+            </div>
+
+            <!-- Citation inspirante -->
+            <div class="inspiration-quote" id="daily-quote">
+                "Pale de sa w santi a, se premye etap gerizon"
+            </div>
 
             <!-- Formulaire de Message -->
             <form id="message-form">
                 <div class="form-group">
-                    <input type="text" id="pseudo" placeholder="👤 Chwazi yon pseudo (opsyonèl)" maxlength="30">
+                    <input type="text" id="pseudo" placeholder="👤 Chwazi yon non (si w vle)" maxlength="30">
                 </div>
 
                 <div class="form-group">
                     <select id="mood">
-                        <option value="">😐 Chwazi kijan ou santi w</option>
-                        <option value="sad">😢 Tris</option>
-                        <option value="anxious">😰 Anksye</option>
-                        <option value="lost">😵 Pèdi</option>
-                        <option value="happy">😊 Kontan</option>
+                        <option value="">🎭 Kijan kè w santi jodi a?</option>
+                        <option value="sad">😢 Kè fè mal</option>
+                        <option value="anxious">😰 Enkyetid ap kraze m</option>
+                        <option value="lost">😵 Mwen pèdi chemen</option>
+                        <option value="angry">😠 Kole wouj</option>
+                        <option value="tired">😴 Fatige anpil</option>
+                        <option value="hopeful">✨ Mwen gen espwa</option>
+                        <option value="peaceful">😌 Kè poze</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <textarea id="message" placeholder="✍️ Ekri sa w santi..." maxlength="1000"></textarea>
+                    <textarea id="message" placeholder="💌 Koute, sa k pase nan kè w? Pa gen anyen ki two piti ni two gwo..." maxlength="1200"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #f8fafc; border-radius: var(--radius);">
                         <input type="checkbox" id="consent">
                         <span style="font-size: 0.9rem; color: var(--muted);">
-                            Mwen dakò ke mesaj mwen ka itilize pou alèt si li parèt ijan
+                            Mwen konprann ke si gen yon sitiyasyon ijan, yo ka kontakte moun kapab ede m
                         </span>
                     </label>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    📤 Pibliye anonimman
+                    ✨ Voye mesaj la
                 </button>
             </form>
 
-            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 107, 107, 0.1); border-radius: var(--radius);">
-                <p style="font-size: 0.9rem; color: var(--muted); text-align: center;">
-                    <strong>📞 Si w an danje, rele:</strong><br>
-                    <span style="color: #ff6b6b; font-weight: bold;">115 / 112</span>
+            <div style="margin-top: 25px; padding: 20px; background: #fff3cd; border-radius: var(--radius); border-left: 4px solid #ffc107;">
+                <p style="font-size: 0.9rem; color: #856404; text-align: center;">
+                    <strong>🆘 Si kè w di w anyen pa ka vanse ankò:</strong><br>
+                    <span style="color: #dc2626; font-weight: bold;">115 / 112</span> - Yo la pou ede w tout tan
                 </p>
             </div>
         </div>
 
         <!-- Sidebar -->
         <div class="card">
-            <h3 style="margin-bottom: 20px;">📝 Fil mesaj yo</h3>
+            <h3 style="margin-bottom: 20px; color: var(--accent);">📖 Mesaj kè yo</h3>
             
             <div id="messages-feed" class="messages-container">
-                <div class="loading">⏳ Chajman mesaj yo...</div>
+                <div class="loading">⏳ Nap chaje mesaj yo...</div>
             </div>
 
             <!-- Panel Admin -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(0, 0, 0, 0.1);">
-                <h4 style="margin-bottom: 15px;">🔧 Admin</h4>
+            <div class="admin-panel">
+                <h4 style="margin-bottom: 15px; color: var(--muted);">🔐 Espas Moderatè</h4>
                 
                 <div class="form-group">
-                    <input type="password" id="admin-code" placeholder="🔑 Kòd admin" style="margin-bottom: 10px;">
+                    <input type="password" id="admin-code" placeholder="🔒 Antre kòd la" style="margin-bottom: 12px;">
                     <button id="admin-btn" class="btn btn-secondary" style="width: 100%;">
-                        📥 Wè mesaj an atant
+                        👁️ Wè mesaj yo kap tann
                     </button>
                 </div>
 
                 <div id="admin-panel" style="display: none;">
+                    <h5 style="margin-bottom: 15px; color: var(--accent);">⏳ Mesaj kap tann apwobasyon</h5>
                     <div id="pending-messages"></div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Bouton soutien flottant -->
+    <div class="floating-support" onclick="openWhatsApp()">
+        <span>🆘 Bezwen pale?</span>
     </div>
 
     <!-- Firebase -->
@@ -233,7 +392,6 @@
 
     <script>
         // ========== CONFIGURATION FIREBASE ==========
-        // REMPLACEZ AVEC VOS CLÉS FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
             authDomain: "votre-projet.firebaseapp.com",
@@ -250,32 +408,82 @@
         // Configuration
         const ADMIN_CODE = "sante123";
 
+        // Messages de soutien
+        const inspirationData = {
+            quotes: [
+                "Pale de sa w santi a, se premye etap gerizon",
+                "Ou pa poukont ou nan batay sa a",
+                "Chak jou w kanpe, se yon viktwa",
+                "Kè poze fè lavi pi bèl",
+                "Ou gen fòs andedan w, menm si w pa wè l",
+                "Pèmèt tèt ou santi tout santiman ou",
+                "Nou la pou tande w, san jijman",
+                "Gerizon pran tan, men li posib",
+                "Ou merite renmen ak respè",
+                "Pa janm bay espwa, bon moman yo ap vini"
+            ],
+            encouragements: [
+                "Mèsi pou konfyans ou 🌸",
+                "Vwa ou enpòtan anpil 💫",
+                "Kontinye kenbe fòm 🌿",
+                "Ou fè yon bon jan 👏",
+                "Nou la pou ou 💝",
+                "Kouray ou enspire moun 🎯",
+                "Ou pi fò pase ou panse 💪"
+            ]
+        };
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            loadMessages();
-            setupEventListeners();
+            console.log("🚀 Lansman aplikasyon an...");
+            initializeApp();
         });
 
+        async function initializeApp() {
+            setupEventListeners();
+            await loadMessages();
+            showRandomQuote();
+            setInterval(showRandomQuote, 30000); // Chanje chak 30 segond
+        }
+
         function setupEventListeners() {
-            document.getElementById('message-form').addEventListener('submit', handleSubmit);
+            const form = document.getElementById('message-form');
+            form.addEventListener('submit', handleSubmit);
             document.getElementById('admin-btn').addEventListener('click', handleAdminAuth);
+            
+            // Ajoute efè pou textarea a
+            const textarea = document.getElementById('message');
+            textarea.addEventListener('focus', showTypingEncouragement);
+        }
+
+        function showRandomQuote() {
+            const quote = inspirationData.quotes[Math.floor(Math.random() * inspirationData.quotes.length)];
+            document.getElementById('daily-quote').textContent = `"${quote}"`;
+        }
+
+        function showTypingEncouragement() {
+            const encouragement = inspirationData.encouragements[Math.floor(Math.random() * inspirationData.encouragements.length)];
+            // Ou ka ajoute yon ti mesaj anba textarea a si w vle
         }
 
         async function handleSubmit(e) {
             e.preventDefault();
             
-            const pseudo = document.getElementById('pseudo').value.trim() || 'Anonim';
+            const pseudo = document.getElementById('pseudo').value.trim() || 'Zanmi';
             const mood = document.getElementById('mood').value;
             const text = document.getElementById('message').value.trim();
             const consent = document.getElementById('consent').checked;
 
             if (!text) {
-                showError('Tanpri ekri yon mesaj.');
+                showError('Tanpri ekri yon ti kout pouvwa pou kè w.');
                 return;
             }
 
+            if (!consent) {
+                if (!confirm('Eske w asire w pou kontinye san konsantman?')) return;
+            }
+
             try {
-                // Ajouter à Firestore
                 await db.collection('messages_pending').add({
                     pseudo: pseudo,
                     mood: mood,
@@ -285,22 +493,19 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                showSuccess('✅ Mesaj voye avèk siksè! Li pral parèt apre modération.');
+                showSuccess('✅ Mesaj ou an voye! L ap parèt talè apre nou wè li.');
                 document.getElementById('message-form').reset();
                 
             } catch (error) {
                 console.error('Erè:', error);
-                showError('Erè anvoye mesaj.');
+                showError('Oops! Yon bagay pa bon. Eseye ankò.');
             }
         }
 
         async function loadMessages() {
             try {
-                const snapshot = await db.collection('messages')
-                    .orderBy('approvedAt', 'desc')
-                    .limit(20)
-                    .get();
-
+                const snapshot = await db.collection('messages').get();
+                
                 const messages = [];
                 snapshot.forEach(doc => {
                     messages.push({ id: doc.id, ...doc.data() });
@@ -310,7 +515,7 @@
                 
             } catch (error) {
                 console.error('Erè chajman:', error);
-                showError('Erè chajman mesaj.');
+                showError('Pedi koneksyon. Eseye ankò.');
             }
         }
 
@@ -320,19 +525,27 @@
             if (messages.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--muted);">
-                        📝 Pa gen mesaj pou kounye a.<br>
-                        Ou ka pataje premye mesaj ou!
+                        📝 Poko gen mesaj isit.<br>
+                        <small>Ou ka ekri premye a!</small>
                     </div>
                 `;
                 return;
             }
 
+            // Trie mesaj yo
+            messages.sort((a, b) => {
+                const timeA = a.approvedAt ? a.approvedAt.toDate().getTime() : 0;
+                const timeB = b.approvedAt ? b.approvedAt.toDate().getTime() : 0;
+                return timeB - timeA;
+            });
+
             container.innerHTML = messages.map(msg => `
                 <div class="message">
-                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
-                        ${escapeHtml(msg.pseudo)} • ${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : ''}
+                    <div class="message-meta">
+                        <span><strong>${escapeHtml(msg.pseudo)}</strong> • ${getMoodEmoji(msg.mood)}</span>
+                        <span>${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : 'Nouvo'}</span>
                     </div>
-                    <div>${escapeHtml(msg.text)}</div>
+                    <div class="message-content">${escapeHtml(msg.text)}</div>
                 </div>
             `).join('');
         }
@@ -341,7 +554,7 @@
             const code = document.getElementById('admin-code').value;
             
             if (code !== ADMIN_CODE) {
-                showError('Kòd admin pa kòrèk!');
+                showError('Kòd la pa bon. Eseye ankò.');
                 return;
             }
 
@@ -351,11 +564,9 @@
 
         async function loadPendingMessages() {
             try {
-                const snapshot = await db.collection('messages_pending')
-                    .orderBy('createdAt', 'desc')
-                    .get();
-
+                const snapshot = await db.collection('messages_pending').get();
                 const pending = [];
+                
                 snapshot.forEach(doc => {
                     pending.push({ id: doc.id, ...doc.data() });
                 });
@@ -364,7 +575,7 @@
                 
             } catch (error) {
                 console.error('Erè chajman atant:', error);
-                showError('Erè chajman mesaj an atant');
+                showError('Pa chaje mesaj yo kap tann.');
             }
         }
 
@@ -374,7 +585,7 @@
             if (messages.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: var(--muted);">
-                        ✅ Pa gen mesaj an atant
+                        ✅ Tout mesaj yo apwouve deja
                     </div>
                 `;
                 return;
@@ -382,15 +593,15 @@
 
             container.innerHTML = messages.map(msg => `
                 <div class="message" style="margin-bottom: 15px;">
-                    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
-                        ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : ''}
+                    <div class="message-meta">
+                        ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : 'Nouvo'}
                     </div>
-                    <div>${escapeHtml(msg.text)}</div>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button onclick="approveMessage('${msg.id}')" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;">
+                    <div class="message-content">${escapeHtml(msg.text)}</div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="approveMessage('${msg.id}')" class="btn btn-success btn-small">
                             ✅ Apwouve
                         </button>
-                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-secondary" style="padding: 8px 15px; font-size: 0.9rem;">
+                        <button onclick="rejectMessage('${msg.id}')" class="btn btn-danger btn-small">
                             ❌ Refize
                         </button>
                     </div>
@@ -399,63 +610,90 @@
         }
 
         async function approveMessage(id) {
-    try {
-        console.log("Tentative d'approbation du message:", id);
-        
-        // 1. Récupérer le message en attente
-        const docRef = db.collection('messages_pending').doc(id);
-        const doc = await docRef.get();
-        
-        if (!doc.exists) {
-            throw new Error("Message non trouvé");
+            try {
+                console.log("🔄 Apwouve mesaj:", id);
+                
+                const docRef = db.collection('messages_pending').doc(id);
+                const doc = await docRef.get();
+                
+                if (!doc.exists) {
+                    showError('Mesaj sa a pa la ankò.');
+                    return;
+                }
+                
+                const data = doc.data();
+
+                // Kreye mesaj apwouve a
+                await db.collection('messages').add({
+                    pseudo: data.pseudo || 'Zanmi',
+                    mood: data.mood || '',
+                    text: data.text || '',
+                    consent: data.consent || false,
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    comments: []
+                });
+
+                // Efase mesaj an atant
+                await docRef.delete();
+
+                // Afiche konfimasyon
+                showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
+
+                // Rechaje imedyatman
+                await loadMessages();
+                await loadPendingMessages();
+                
+            } catch (error) {
+                console.error('❌ Erè apwobasyon:', error);
+                showError('Erè apwouve mesaj la.');
+            }
         }
-        
-        const data = doc.data();
-        console.log("Données du message:", data);
 
-        // 2. Créer le message approuvé
-        const newMessage = {
-            pseudo: data.pseudo || 'Anonim',
-            mood: data.mood || '',
-            text: data.text || '',
-            consent: data.consent || false,
-            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: data.createdAt || firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        console.log("Nouveau message approuvé:", newMessage);
-        
-        await db.collection('messages').add(newMessage);
-
-        // 3. Supprimer l'attente
-        await docRef.delete();
-        
-        console.log("Message approuvé avec succès!");
-
-        // 4. Recharger
-        await loadMessages();
-        await loadPendingMessages();
-        showSuccess('✅ Mesaj apwouve avèk siksè!');
-        
-    } catch (error) {
-        console.error('Erè detay apwobasyon:', error);
-        showError('Erè apwobasyon: ' + error.message);
-    }
-}
         async function rejectMessage(id) {
-            if (!confirm('Èske w sèten w vle refize mesaj sa a?')) return;
+            if (!confirm('Eske w sèten w vle retire mesaj sa a?')) return;
 
             try {
                 await db.collection('messages_pending').doc(id).delete();
                 await loadPendingMessages();
-                showSuccess('✅ Mesaj refize.');
+                showSuccess('✅ Mesaj la retire.');
             } catch (error) {
                 console.error('Erè:', error);
-                showError('Erè refize mesaj');
+                showError('Erè retire mesaj la.');
             }
         }
 
+        function openWhatsApp() {
+            const phone = '50949033260';
+            const text = encodeURIComponent('Bonjou, mwen bezwen pale ak yon moun - Kè Poze');
+            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        }
+
         // Utilitaires
+        function getMoodEmoji(mood) {
+            const emojis = {
+                'sad': '😢', 'anxious': '😰', 'lost': '😵', 'angry': '😠',
+                'tired': '😴', 'hopeful': '✨', 'peaceful': '😌'
+            };
+            return emojis[mood] || '🎭';
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('fr-FR', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function showError(message) {
             const container = document.getElementById('messages-feed');
             const errorDiv = document.createElement('div');
@@ -476,19 +714,10 @@
             setTimeout(() => successDiv.remove(), 3000);
         }
 
-        function formatDate(date) {
-            return date.toLocaleDateString('fr-FR');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
         // Exposer les fonctions globales
         window.approveMessage = approveMessage;
         window.rejectMessage = rejectMessage;
+        window.openWhatsApp = openWhatsApp;
     </script>
 </body>
 </html>
