@@ -338,6 +338,23 @@
             opacity: 0.8;
             margin-top: 5px;
         }
+
+        .courage-message {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+            text-align: center;
+            animation: fadeInOut 5s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -361,6 +378,9 @@
                 <button class="quote-nav quote-next" onclick="showNextQuote()">›</button>
             </div>
 
+            <!-- MESAJ KOURAJ -->
+            <div id="courage-message" style="display: none;"></div>
+
             <!-- Formulaire de Message -->
             <form id="message-form">
                 <div class="form-group">
@@ -369,7 +389,7 @@
 
                 <div class="form-group">
                     <select id="mood">
-                        <option value="">🎭 Kijan kè w santi jodi a?</option>
+                        <option value="">🎭 Kijan kè w santi jidi a?</option>
                         <option value="sad">😢 Kè fè mal</option>
                         <option value="anxious">😰 Enkyetid ap kraze m</option>
                         <option value="lost">😵 Mwen pèdi chemen</option>
@@ -397,9 +417,6 @@
                     ✨ Voye mesaj la
                 </button>
             </form>
-
-            <!-- MESAJ KONFIRMASYON -->
-            <div id="confirmation-message" style="display: none; margin-top: 20px;"></div>
 
             <div style="margin-top: 25px; padding: 20px; background: #fff3cd; border-radius: var(--radius); border-left: 4px solid #ffc107;">
                 <p style="font-size: 0.9rem; color: #856404; text-align: center;">
@@ -489,13 +506,22 @@
                 "Pa janm bay espwa, bon moman yo ap vini"
             ],
             encouragements: [
-                "Mèsi pou konfyans ou 🌸",
+                "Mèsi pou kouraj ou 🌸",
                 "Vwa ou enpòtan anpil 💫",
-                "Kontinye kenbe fòm 🌿",
+                "Mèsi pou konfyans ou 🌿",
                 "Ou fè yon bon jan 👏",
                 "Nou la pou ou 💝",
                 "Kouray ou enspire moun 🎯",
                 "Ou pi fò pase ou panse 💪"
+            ],
+            courageMessages: [
+                "Mèsi pou kouraj ou! 🌸 Kè poze ak fòs pou w.",
+                "Vwa ou enpòtan anpil 💫 Mèsi pou pataje kè w.",
+                "Mèsi pou konfyans ou 🌿 Ou pa poukont ou.",
+                "Ou fè yon bon jan 👏 Kontinye kenbe fòm.",
+                "Nou la pou ou 💝 Mèsi pou kouraj w.",
+                "Kouray ou enspire moun 🎯 Mèsi anpil.",
+                "Ou pi fò pase ou panse 💪 Mèsi pou pataj la."
             ]
         };
 
@@ -527,7 +553,12 @@
                     console.log("🔄 Mizajou an tan reyèl!");
                     allMessages = [];
                     snapshot.forEach(doc => {
-                        allMessages.push({ id: doc.id, ...doc.data() });
+                        const data = doc.data();
+                        allMessages.push({ 
+                            id: doc.id, 
+                            ...data,
+                            approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+                        });
                     });
                     displayMessages(allMessages);
                 }, (error) => {
@@ -561,6 +592,25 @@
             showQuote(currentQuoteIndex);
         }
 
+        // 🔥 FONKSYON POU MONTRE MESAJ KOURAJ
+        function showCourageMessage() {
+            const courageMessage = inspirationData.courageMessages[
+                Math.floor(Math.random() * inspirationData.courageMessages.length)
+            ];
+            
+            const container = document.getElementById('courage-message');
+            container.innerHTML = `
+                <div class="courage-message">
+                    <strong>${courageMessage}</strong>
+                </div>
+            `;
+            container.style.display = 'block';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 5000);
+        }
+
         async function handleSubmit(e) {
             e.preventDefault();
             
@@ -579,7 +629,7 @@
             }
 
             try {
-                // 🔥 KORÈKSYON: Voye mesaj la nan koleksyon "messages_pending" pou apwobasyon
+                // 🔥 Voye mesaj la nan koleksyon "messages_pending" pou apwobasyon
                 await db.collection('messages_pending').add({
                     pseudo: pseudo,
                     mood: mood,
@@ -589,31 +639,16 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // 🔥 KORÈKSYON: Montre konfimasyon klè
-                showConfirmationMessage(`
-                    <div class="success">
-                        <strong>✅ Mesaj ou an voye ak siksè!</strong><br>
-                        <small>Mesaj ou a pral parèt apre apwobasyon moderatè a. Mèsi pou pasyans w.</small>
-                    </div>
-                `);
+                // 🔥 Montre mesaj kouraj la
+                showCourageMessage();
                 
+                // 🔥 Reset fòm nan
                 document.getElementById('message-form').reset();
                 
             } catch (error) {
                 console.error('Erè:', error);
                 showError('Oops! Yon bagay pa bon. Eseye ankò.');
             }
-        }
-
-        // 🔥 FONKSYON POU MONTRE KONFIRMASYON
-        function showConfirmationMessage(html) {
-            const container = document.getElementById('confirmation-message');
-            container.innerHTML = html;
-            container.style.display = 'block';
-            
-            setTimeout(() => {
-                container.style.display = 'none';
-            }, 5000);
         }
 
         async function loadMessages() {
@@ -628,7 +663,12 @@
                 
                 allMessages = [];
                 snapshot.forEach(doc => {
-                    allMessages.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    allMessages.push({ 
+                        id: doc.id, 
+                        ...data,
+                        approvedAt: data.approvedAt ? data.approvedAt.toDate() : new Date()
+                    });
                 });
 
                 displayMessages(allMessages);
@@ -656,7 +696,7 @@
                 <div class="message">
                     <div class="message-meta">
                         <span><strong>${escapeHtml(msg.pseudo)}</strong> • ${getMoodEmoji(msg.mood)}</span>
-                        <span>${msg.approvedAt ? formatDate(msg.approvedAt.toDate()) : 'Nouvo'}</span>
+                        <span>${formatDate(msg.approvedAt)}</span>
                     </div>
                     <div class="message-content">${escapeHtml(msg.text)}</div>
                     
@@ -700,28 +740,20 @@
 
             try {
                 const comment = {
-                    pseudo: 'Zanmi', // Ou ka chanje sa si w vle
+                    pseudo: 'Zanmi',
                     text: commentText,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: new Date() // 🔥 KORÈKSYON: Sèvi ak Date() olye de serverTimestamp()
                 };
 
-                // 🔥 KORÈKSYON: Ajoute komantè a nan mesaj la
+                // 🔥 KORÈKSYON: Sèvi ak arrayUnion pou evite pwoblèm serverTimestamp
                 const messageRef = db.collection('messages').doc(messageId);
-                const messageDoc = await messageRef.get();
                 
-                if (messageDoc.exists) {
-                    const currentComments = messageDoc.data().comments || [];
-                    currentComments.push(comment);
-                    
-                    await messageRef.update({
-                        comments: currentComments
-                    });
+                await messageRef.update({
+                    comments: firebase.firestore.FieldValue.arrayUnion(comment)
+                });
 
-                    commentInput.value = '';
-                    showSuccess('💬 Komantè ou an ajoute!');
-                } else {
-                    showError('Mesaj la pa egziste ankò.');
-                }
+                commentInput.value = '';
+                showSuccess('💬 Komantè ou an ajoute!');
                 
             } catch (error) {
                 console.error('Erè ajoute komantè:', error);
@@ -747,7 +779,12 @@
                 const pending = [];
                 
                 snapshot.forEach(doc => {
-                    pending.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    pending.push({ 
+                        id: doc.id, 
+                        ...data,
+                        createdAt: data.createdAt ? data.createdAt.toDate() : new Date()
+                    });
                 });
 
                 displayPendingMessages(pending);
@@ -773,7 +810,7 @@
             container.innerHTML = messages.map(msg => `
                 <div class="message" style="margin-bottom: 15px;">
                     <div class="message-meta">
-                        ${escapeHtml(msg.pseudo)} • ${msg.createdAt ? formatDate(msg.createdAt.toDate()) : 'Nouvo'}
+                        ${escapeHtml(msg.pseudo)} • ${formatDate(msg.createdAt)}
                     </div>
                     <div class="message-content">${escapeHtml(msg.text)}</div>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -802,7 +839,7 @@
                 
                 const data = doc.data();
 
-                // Kreye mesaj apwouve a
+                // 🔥 KORÈKSYON: Kreye mesaj apwouve a ak done konplè
                 await db.collection('messages').add({
                     pseudo: data.pseudo || 'Zanmi',
                     mood: data.mood || '',
@@ -814,13 +851,13 @@
                     status: 'approved'
                 });
 
-                // Efase mesaj an atant
+                // 🔥 KORÈKSYON: Efase mesaj an atant apre apwobasyon
                 await docRef.delete();
 
                 // Afiche konfimasyon
                 showSuccess('✅ Mesaj la apwouve! Li parèt kounye a.');
 
-                // Rechaje lis yo
+                // Rechaje lis mesaj kap tann
                 await loadPendingMessages();
                 
             } catch (error) {
@@ -858,6 +895,7 @@
         }
 
         function formatDate(date) {
+            if (!date) return 'Nouvo';
             return date.toLocaleDateString('ht-HT', { 
                 year: 'numeric', 
                 month: 'short', 
